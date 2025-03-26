@@ -7,7 +7,7 @@ import java.util.Date
 
 @Entity(tableName = "strava_activities")
 data class StravaActivityEntity(
-    @PrimaryKey val id: Long,
+    @PrimaryKey(autoGenerate = true) val id: Long,
     val name: String,
     val type: String,
     val distance: Float,
