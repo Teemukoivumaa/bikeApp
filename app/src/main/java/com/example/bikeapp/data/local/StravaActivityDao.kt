@@ -12,11 +12,17 @@ interface StravaActivityDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(activities: List<StravaActivityEntity>)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(activity: StravaActivityEntity)
+
     @Query("SELECT * FROM strava_activities WHERE id = :id")
     fun getActivityById(id: Long): Flow<StravaActivityEntity>
 
     @Query("SELECT * FROM strava_activities")
     fun getAllActivities(): Flow<List<StravaActivityEntity>>
+
+    @Query("DELETE FROM strava_activities WHERE id = :id")
+    suspend fun deleteActivityById(id: Long)
 
     @Query("DELETE FROM strava_activities")
     suspend fun deleteAllActivities()
