@@ -15,5 +15,5 @@ import com.example.bikeapp.data.model.StravaActivityEntity
 @TypeConverters(DateConverter::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun stravaActivityDao(): StravaActivityDao
-    abstract fun athleteDao(): AthleteDao
+    abstract fun stravaAthleteDao(): AthleteDao
 }

@@ -24,8 +24,8 @@ val bottomNavItems = listOf(
         icon = Icons.AutoMirrored.Filled.List
     ),
     BottomNavItem(
-        name = "Settings",
-        route = "settings_screen",
+        name = "Strava",
+        route = "strava_login",
         icon = Icons.Filled.Settings
     )
 )

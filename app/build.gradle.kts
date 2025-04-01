@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.bikeapp"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -20,12 +20,22 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "STRAVA_CLIENT_ID", "\"${project.properties["STRAVA_CLIENT_ID"]}\"")
+            buildConfigField("String", "STRAVA_REDIRECT_URI", "\"${project.properties["STRAVA_REDIRECT_URI"]}\"")
+            buildConfigField("String", "STRAVA_CLIENT_SECRET", "\"${project.properties["STRAVA_CLIENT_SECRET"]}\"")
+            buildConfigField("String", "STRAVA_REFRESH_TOKEN", "\"${project.properties["STRAVA_REFRESH_TOKEN"]}\"")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("String", "STRAVA_CLIENT_ID", "\"${project.properties["STRAVA_CLIENT_ID"]}\"")
+            buildConfigField("String", "STRAVA_REDIRECT_URI", "\"${project.properties["STRAVA_REDIRECT_URI"]}\"")
+            buildConfigField("String", "STRAVA_CLIENT_SECRET", "\"${project.properties["STRAVA_CLIENT_SECRET"]}\"")
+            buildConfigField("String", "STRAVA_REFRESH_TOKEN", "\"${project.properties["STRAVA_REFRESH_TOKEN"]}\"")
         }
     }
     compileOptions {
@@ -37,6 +47,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     sourceSets {
         getByName("main") {
@@ -53,6 +64,13 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     ksp(libs.androidx.room.compiler)
 
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.1")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
