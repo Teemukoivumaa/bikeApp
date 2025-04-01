@@ -22,7 +22,7 @@ class ActivityViewModel(private val database: AppDatabase) : ViewModel() {
     // Load activities from the database when the ViewModel is initialized
     private fun loadActivities() {
         viewModelScope.launch {
-            database.stravaActivityDao().getAllActivities().collect {
+            database.stravaActivityDao().getAllActivitiesSortedByDate().collect {
                 _activities.value = it
             }
         }

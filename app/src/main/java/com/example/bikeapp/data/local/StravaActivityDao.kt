@@ -18,8 +18,14 @@ interface StravaActivityDao {
     @Query("SELECT * FROM strava_activities WHERE id = :id")
     fun getActivityById(id: Long): Flow<StravaActivityEntity>
 
+    @Query("SELECT * FROM strava_activities WHERE external_id = :externalId")
+    fun getActivityByExternalId(externalId: String): StravaActivityEntity?
+
     @Query("SELECT * FROM strava_activities")
     fun getAllActivities(): Flow<List<StravaActivityEntity>>
+
+    @Query("SELECT * FROM strava_activities ORDER BY start_date DESC")
+    fun getAllActivitiesSortedByDate(): Flow<List<StravaActivityEntity>>
 
     @Query("DELETE FROM strava_activities WHERE id = :id")
     suspend fun deleteActivityById(id: Long)
