@@ -13,7 +13,7 @@ interface StravaActivityDao {
     suspend fun insertAll(activities: List<StravaActivityEntity>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(activity: StravaActivityEntity)
+    suspend fun insert(activity: StravaActivityEntity): Long
 
     @Query("SELECT * FROM strava_activities WHERE id = :id")
     fun getActivityById(id: Long): Flow<StravaActivityEntity>
@@ -26,6 +26,9 @@ interface StravaActivityDao {
 
     @Query("SELECT * FROM strava_activities ORDER BY start_date DESC")
     fun getAllActivitiesSortedByDate(): Flow<List<StravaActivityEntity>>
+
+    @Query("SELECT * FROM strava_activities ORDER BY start_date DESC LIMIT 1")
+    fun getLatestActivity(): Flow<StravaActivityEntity>
 
     @Query("DELETE FROM strava_activities WHERE id = :id")
     suspend fun deleteActivityById(id: Long)

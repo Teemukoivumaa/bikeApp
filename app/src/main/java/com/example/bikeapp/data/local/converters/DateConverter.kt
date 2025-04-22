@@ -1,4 +1,4 @@
-package com.example.bikeapp.data.local
+package com.example.bikeapp.data.local.converters
 
 import androidx.room.TypeConverter
 import java.util.Date

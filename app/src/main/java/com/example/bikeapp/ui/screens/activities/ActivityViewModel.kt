@@ -1,9 +1,11 @@
 package com.example.bikeapp.ui.screens.activities
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bikeapp.data.local.AppDatabase
 import com.example.bikeapp.data.model.StravaActivityEntity
+import com.example.bikeapp.utils.calculateEndTime
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -13,10 +15,13 @@ import java.util.Date
 class ActivityViewModel(private val database: AppDatabase) : ViewModel() {
 
     private val _activities = MutableStateFlow<List<StravaActivityEntity>>(emptyList())
+    private val _totalLength = MutableStateFlow(0.0f)
     val activities: StateFlow<List<StravaActivityEntity>> = _activities
+    val totalLength: StateFlow<Float> = _totalLength
 
     init {
         loadActivities()
+        observeActivities() // Call observeActivities instead of calculateTotalLength here
     }
 
     // Load activities from the database when the ViewModel is initialized
@@ -24,27 +29,74 @@ class ActivityViewModel(private val database: AppDatabase) : ViewModel() {
         viewModelScope.launch {
             database.stravaActivityDao().getAllActivitiesSortedByDate().collect {
                 _activities.value = it
+
+                // Loop through the activities and add activity end time
+                // to each one if it doesn't exist
+                for (activity in it) {
+                    if (activity.activityEndTime.isEmpty()) {
+                        val startDate = activity.startDate
+                        val movingTime = activity.movingTime
+                        val activityEndTime = calculateEndTime(startDate, movingTime)
+                        updateActivityEndTime(activity.id, activityEndTime)
+                    }
+                }
             }
         }
     }
 
+    // Update the activity end time in the database
+    private fun updateActivityEndTime(activityId: Long, activityEndTime: String) {
+        viewModelScope.launch {
+            database.stravaActivityDao().updateActivityEndTime(activityId, activityEndTime)
+        }
+    }
+
+    // Observe the activities flow and recalculate total length when it changes
+    private fun observeActivities() {
+        viewModelScope.launch {
+            activities.collect {
+                calculateTotalLength(it)
+            }
+        }
+    }
+
+    // Recalculate total length based on the provided list of activities
+    private fun calculateTotalLength(activities: List<StravaActivityEntity>) {
+        val totalLength = activities.sumOf { it.distance.toDouble() }.toFloat()
+        _totalLength.value = totalLength
+    }
+
     // Add a new activity to the database
-    fun addActivity(name: String, date: Date = Date(), distance: Float = 0.0f) {
+    fun addActivity(name: String, date: Date = Date()) {
+        var distance = 7092.39990234375
+
         viewModelScope.launch {
             val newActivity = StravaActivityEntity(
                 id = 0, // Assuming auto-increment in the database
                 name = name,
                 startDate = date,
-                distance = distance,
+                distance = distance.toFloat(),
                 type = "Ride",
-                movingTime = 10,
-                elapsedTime = 20,
-                averageSpeed = 2.0F,
-                maxSpeed = 5.0F,
+                movingTime = 1000,
+                elapsedTime = 200,
+                activityEndTime = "12:00",
+                averageSpeed = 20.0F,
+                maxSpeed = 25.0F,
                 totalElevationGain = 500F,
                 averageWatts = 5F,
-                externalId = "externalId"
+                externalId = "externalId",
+                description = "desc",
+                calories = 200F,
+                sportType = "sport",
+                elevHigh = 100F,
+                elevLow = 10F,
+                deviceName = "Mock",
+                averageHeartrate = 10.0f,
+                maxHeartrate = 20.0f,
             )
+
+            Log.d("ActivityViewModel", "Adding activity: $newActivity")
+
             database.stravaActivityDao().insert(newActivity)
 
             loadActivities() // Refresh the list after adding

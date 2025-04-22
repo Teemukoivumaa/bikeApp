@@ -15,9 +15,12 @@ import androidx.compose.ui.Modifier
 import androidx.room.Room
 import com.example.bikeapp.data.local.AppDatabase
 import com.example.bikeapp.data.local.SecureStorageManager
+import com.example.bikeapp.data.local.migrations.MIGRATION_1_2
+import com.example.bikeapp.data.local.migrations.MIGRATION_2_3
 import com.example.bikeapp.data.remote.StravaRepository
 import com.example.bikeapp.ui.navigation.AppNavGraph
 import com.example.bikeapp.ui.screens.activities.ActivityViewModel
+import com.example.bikeapp.ui.screens.home.HomeScreenViewModel
 import com.example.bikeapp.ui.screens.strava.StravaLoginViewModel
 import com.example.bikeapp.ui.theme.BikeAppTheme
 
@@ -25,6 +28,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var database: AppDatabase
     private lateinit var activityViewModel: ActivityViewModel
     private lateinit var stravaLoginViewModel: StravaLoginViewModel
+    private lateinit var homeScreenViewModel: HomeScreenViewModel
 
     private lateinit var paddingValues: PaddingValues
     private lateinit var secureStorageManager: SecureStorageManager
@@ -35,7 +39,7 @@ class MainActivity : ComponentActivity() {
         database = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java, "bike-app-database"
-        ).build()
+        ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build()
 
         secureStorageManager = SecureStorageManager(applicationContext)
 
@@ -45,7 +49,9 @@ class MainActivity : ComponentActivity() {
         paddingValues = PaddingValues()
 
         activityViewModel = ActivityViewModel(database)
-        stravaLoginViewModel = StravaLoginViewModel(database, secureStorageManager, stravaRepository)
+        stravaLoginViewModel =
+            StravaLoginViewModel(database, secureStorageManager, stravaRepository)
+        homeScreenViewModel = HomeScreenViewModel(database)
 
         setContent {
             BikeAppTheme {
@@ -55,8 +61,10 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     AppNavGraph(
+                        database = database,
                         activityViewModel = activityViewModel,
-                        stravaLoginViewModel = stravaLoginViewModel
+                        stravaLoginViewModel = stravaLoginViewModel,
+                        homeScreenViewModel = homeScreenViewModel
                     )
                 }
             }
