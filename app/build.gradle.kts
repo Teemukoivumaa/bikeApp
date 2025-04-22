@@ -17,14 +17,41 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments["room.schemaLocation"] = file("schemas").absolutePath
+            }
+        }
     }
 
     buildTypes {
         debug {
-            buildConfigField("String", "STRAVA_CLIENT_ID", "\"${project.properties["STRAVA_CLIENT_ID"]}\"")
-            buildConfigField("String", "STRAVA_REDIRECT_URI", "\"${project.properties["STRAVA_REDIRECT_URI"]}\"")
-            buildConfigField("String", "STRAVA_CLIENT_SECRET", "\"${project.properties["STRAVA_CLIENT_SECRET"]}\"")
-            buildConfigField("String", "STRAVA_REFRESH_TOKEN", "\"${project.properties["STRAVA_REFRESH_TOKEN"]}\"")
+            buildConfigField(
+                "String",
+                "STRAVA_CLIENT_ID",
+                "\"${project.properties["STRAVA_CLIENT_ID"]}\""
+            )
+            buildConfigField(
+                "String",
+                "STRAVA_REDIRECT_URI",
+                "\"${project.properties["STRAVA_REDIRECT_URI"]}\""
+            )
+            buildConfigField(
+                "String",
+                "STRAVA_CLIENT_SECRET",
+                "\"${project.properties["STRAVA_CLIENT_SECRET"]}\""
+            )
+            buildConfigField(
+                "String",
+                "STRAVA_REFRESH_TOKEN",
+                "\"${project.properties["STRAVA_REFRESH_TOKEN"]}\""
+            )
+            buildConfigField(
+                "String",
+                "MAPS_API_KEY",
+                "\"${project.properties["MAPS_API_KEY"]}\""
+            )
         }
         release {
             isMinifyEnabled = false
@@ -32,10 +59,26 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "STRAVA_CLIENT_ID", "\"${project.properties["STRAVA_CLIENT_ID"]}\"")
-            buildConfigField("String", "STRAVA_REDIRECT_URI", "\"${project.properties["STRAVA_REDIRECT_URI"]}\"")
-            buildConfigField("String", "STRAVA_CLIENT_SECRET", "\"${project.properties["STRAVA_CLIENT_SECRET"]}\"")
-            buildConfigField("String", "STRAVA_REFRESH_TOKEN", "\"${project.properties["STRAVA_REFRESH_TOKEN"]}\"")
+            buildConfigField(
+                "String",
+                "STRAVA_CLIENT_ID",
+                "\"${project.properties["STRAVA_CLIENT_ID"]}\""
+            )
+            buildConfigField(
+                "String",
+                "STRAVA_REDIRECT_URI",
+                "\"${project.properties["STRAVA_REDIRECT_URI"]}\""
+            )
+            buildConfigField(
+                "String",
+                "STRAVA_CLIENT_SECRET",
+                "\"${project.properties["STRAVA_CLIENT_SECRET"]}\""
+            )
+            buildConfigField(
+                "String",
+                "STRAVA_REFRESH_TOKEN",
+                "\"${project.properties["STRAVA_REFRESH_TOKEN"]}\""
+            )
         }
     }
     compileOptions {
@@ -63,6 +106,10 @@ dependencies {
     implementation(libs.androidx.room.ktx.v261)
     implementation(libs.androidx.navigation.compose)
     ksp(libs.androidx.room.compiler)
+
+    implementation("com.google.maps.android:maps-compose:6.5.3")
+    implementation("androidx.compose.ui:ui-text-google-fonts:1.7.8")
+    implementation("com.google.code.gson:gson:2.10.1")
 
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")

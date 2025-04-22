@@ -60,18 +60,24 @@ data class ActivityResponse(
     val athlete: ActivityAthlete,
     val name: String,
     val distance: Float,
+    val id: Long,
+    val type: String,
+    val timezone: String,
+    val description: String?, // Can be null
     @SerializedName("moving_time")
     val movingTime: Int,
     @SerializedName("elapsed_time")
     val elapsedTime: Int,
     @SerializedName("total_elevation_gain")
     val totalElevationGain: Float,
-    val type: String,
+    @SerializedName("elev_high")
+    val elevHigh: Float,
+    @SerializedName("elev_low")
+    val elevLow: Float,
     @SerializedName("sport_type")
     val sportType: String,
     @SerializedName("workout_type")
     val workoutType: Any?, // Can be null, so use Any? or a specific type if you know it
-    val id: Long,
     @SerializedName("external_id")
     val externalId: String?, // Can be null
     @SerializedName("upload_id")
@@ -80,7 +86,6 @@ data class ActivityResponse(
     val startDate: String,
     @SerializedName("start_date_local")
     val startDateLocal: String,
-    val timezone: String,
     @SerializedName("utc_offset")
     val utcOffset: Int,
     @SerializedName("start_latlng")
@@ -107,6 +112,7 @@ data class ActivityResponse(
     val trainer: Boolean,
     val commute: Boolean,
     val manual: Boolean,
+    val calories: Float?, // Can be null
     @SerializedName("private")
     val isPrivate: Boolean, // 'private' is a reserved keyword in Kotlin
     val flagged: Boolean,
@@ -127,12 +133,14 @@ data class ActivityResponse(
     val kilojoules: Double?, // Can be null
     @SerializedName("device_watts")
     val deviceWatts: Boolean?, // Can be null
+    @SerializedName("device_name")
+    val deviceName: String?, // Can be null
     @SerializedName("has_heartrate")
     val hasHeartrate: Boolean,
     @SerializedName("average_heartrate")
-    val averageHeartrate: Double?, // Can be null
+    val averageHeartrate: Float?, // Can be null
     @SerializedName("max_heartrate")
-    val maxHeartrate: Int?, // Can be null
+    val maxHeartrate: Float?, // Can be null
     @SerializedName("max_watts")
     val maxWatts: Int?, // Can be null
     @SerializedName("pr_count")

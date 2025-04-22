@@ -9,12 +9,14 @@ import androidx.lifecycle.viewModelScope
 import com.example.bikeapp.BuildConfig
 import com.example.bikeapp.data.local.AppDatabase
 import com.example.bikeapp.data.local.SecureStorageManager
+import com.example.bikeapp.data.model.ActivityLocationEntity
 import com.example.bikeapp.data.model.AthleteEntity
 import com.example.bikeapp.data.model.StravaActivityEntity
 import com.example.bikeapp.data.remote.ActivityResponse
 import com.example.bikeapp.data.remote.RefreshTokenRequest
 import com.example.bikeapp.data.remote.StravaRepository
 import com.example.bikeapp.data.remote.TokenRequest
+import com.example.bikeapp.utils.calculateEndTime
 import com.example.bikeapp.utils.convertStringToDateUsingTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -164,7 +166,6 @@ class StravaLoginViewModel(
             }
 
             if (allActivities.isNotEmpty()) {
-                Log.d("StravaLoginScreen", "Activities found: ${allActivities.size}")
                 for (activity in allActivities) {
                     val type = activity.type
                     val externalId = activity.id.toString()
@@ -180,13 +181,11 @@ class StravaLoginViewModel(
                     }
 
                     if (existingActivity != null) {
-                        Log.d(
-                            "StravaLoginScreen", "Activity already exists, skipping: $externalId"
-                        )
                         continue
                     }
 
                     val startDate = convertStringToDateUsingTime(activity.startDateLocal)
+                    val activityEndTime = calculateEndTime(startDate, activity.movingTime)
                     val newActivity = StravaActivityEntity(
                         id = 0, // Assuming auto-increment in the database
                         name = activity.name,
@@ -195,17 +194,53 @@ class StravaLoginViewModel(
                         type = type,
                         movingTime = activity.movingTime,
                         elapsedTime = activity.elapsedTime,
+                        activityEndTime = activityEndTime,
                         averageSpeed = activity.averageSpeed,
+                        averageHeartrate = activity.averageHeartrate,
+                        maxHeartrate = activity.maxHeartrate,
                         maxSpeed = activity.maxSpeed,
                         totalElevationGain = activity.totalElevationGain,
                         averageWatts = activity.averageWatts,
-                        externalId = externalId
+                        externalId = externalId,
+                        description = activity.description,
+                        calories = activity.calories,
+                        sportType = activity.sportType,
+                        elevHigh = activity.elevHigh,
+                        elevLow = activity.elevLow,
+                        deviceName = activity.deviceName,
                     )
 
                     withContext(Dispatchers.IO) {
-                        database.stravaActivityDao().insert(newActivity)
+                        val activityId = database.stravaActivityDao().insert(newActivity)
+
+                        val startLocation = activity.startLatlng
+                        Log.d("StravaLoginScreen", "Start location: $startLocation")
+                        if (startLocation?.size == 2) {
+                            val activityLocation = ActivityLocationEntity(
+                                id = 0,
+                                activityId = activityId,
+                                latitude = startLocation[0],
+                                longitude = startLocation[1],
+                                coordinatesAsString = "${startLocation[0]},${startLocation[1]}",
+                                type = "Start"
+                            )
+                            database.locationDao().insert(activityLocation)
+                        }
+                        val endLocation = activity.endLatlng
+                        if (endLocation?.size == 2) {
+                            val activityLocation = ActivityLocationEntity(
+                                id = 0,
+                                activityId = activityId,
+                                latitude = endLocation[0],
+                                longitude = endLocation[1],
+                                coordinatesAsString = "${endLocation[0]},${endLocation[1]}",
+                                type = "End"
+                            )
+                            database.locationDao().insert(activityLocation)
+                        }
                     }
                 }
+
                 Log.d("StravaLoginScreen", "All activities inserted into database.")
 
             } else {

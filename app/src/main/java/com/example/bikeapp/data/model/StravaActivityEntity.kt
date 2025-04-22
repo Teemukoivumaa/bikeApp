@@ -2,6 +2,8 @@ package com.example.bikeapp.data.model
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.util.Date
 
@@ -9,14 +11,42 @@ import java.util.Date
 data class StravaActivityEntity(
     @PrimaryKey(autoGenerate = true) val id: Long,
     val name: String,
+    val description: String?,
     val type: String,
     val distance: Float,
+    val calories: Float?,
+    @ColumnInfo(name = "sport_type") val sportType: String,
     @ColumnInfo(name = "moving_time") val movingTime: Int,
     @ColumnInfo(name = "elapsed_time") val elapsedTime: Int,
     @ColumnInfo(name = "start_date") val startDate: Date,
+    @ColumnInfo(name = "activity_end_time") val activityEndTime: String,
     @ColumnInfo(name = "average_speed") val averageSpeed: Float,
     @ColumnInfo(name = "max_speed") val maxSpeed: Float,
     @ColumnInfo(name = "total_elevation_gain") val totalElevationGain: Float,
+    @ColumnInfo(name = "elev_high") val elevHigh: Float,
+    @ColumnInfo(name = "elev_low") val elevLow: Float,
     @ColumnInfo(name = "average_watts") val averageWatts: Float?,
+    @ColumnInfo(name = "average_heartrate") val averageHeartrate: Float?,
+    @ColumnInfo(name = "max_heartrate") val maxHeartrate: Float?,
+    @ColumnInfo(name = "device_name") val deviceName: String?,
     @ColumnInfo(name = "external_id") val externalId: String?
+)
+
+@Entity(
+    tableName = "activity_locations",
+    foreignKeys = [ForeignKey(
+        entity = StravaActivityEntity::class,
+        parentColumns = ["id"],
+        childColumns = ["activity_id"],
+        onDelete = ForeignKey.CASCADE // Delete the location if the activity is deleted
+    )],
+    indices = [Index(value = ["activity_id"])]  // Added index here
+)
+data class ActivityLocationEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long,
+    @ColumnInfo(name = "activity_id") val activityId: Long,
+    val latitude: Double,
+    val longitude: Double,
+    val coordinatesAsString: String,
+    val type: String,
 )

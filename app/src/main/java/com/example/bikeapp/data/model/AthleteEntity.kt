@@ -3,7 +3,6 @@ package com.example.bikeapp.data.model
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.example.bikeapp.data.remote.Bike
 
 @Entity(tableName = "athletes")
 data class AthleteEntity(
