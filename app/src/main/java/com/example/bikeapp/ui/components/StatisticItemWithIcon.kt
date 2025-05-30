@@ -1,6 +1,7 @@
 package com.example.bikeapp.ui.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
@@ -14,7 +15,6 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
@@ -26,12 +26,12 @@ fun StatisticItemWithIcon(
     icon: Int, text: String, modifier: Modifier = Modifier, tooltipText: String? = null
 ) {
     Row(
-        verticalAlignment = Alignment.CenterVertically, modifier = modifier.padding(vertical = 4.dp)
+        horizontalArrangement = Arrangement.Center, modifier = modifier.padding(vertical = 4.dp)
     ) {
         Image(
             painter = painterResource(id = icon),
             contentDescription = "Statistic Icon",
-            modifier = Modifier.size(24.dp),  // Adjust size
+            modifier = Modifier.size(24.dp),
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
         )
         Spacer(modifier = Modifier.width(8.dp))

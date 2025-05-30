@@ -29,25 +29,7 @@ class ActivityViewModel(private val database: AppDatabase) : ViewModel() {
         viewModelScope.launch {
             database.stravaActivityDao().getAllActivitiesSortedByDate().collect {
                 _activities.value = it
-
-                // Loop through the activities and add activity end time
-                // to each one if it doesn't exist
-                for (activity in it) {
-                    if (activity.activityEndTime.isEmpty()) {
-                        val startDate = activity.startDate
-                        val movingTime = activity.movingTime
-                        val activityEndTime = calculateEndTime(startDate, movingTime)
-                        updateActivityEndTime(activity.id, activityEndTime)
-                    }
-                }
             }
-        }
-    }
-
-    // Update the activity end time in the database
-    private fun updateActivityEndTime(activityId: Long, activityEndTime: String) {
-        viewModelScope.launch {
-            database.stravaActivityDao().updateActivityEndTime(activityId, activityEndTime)
         }
     }
 

@@ -16,3 +16,16 @@ data class AthleteEntity(
     @ColumnInfo(name = "sex") val sex: String?,
 //    @ColumnInfo(name = "bikes") val bikes: List<Bike>?
 )
+
+fun mockAthlete(): AthleteEntity {
+    return AthleteEntity(
+        id = 0,
+        username = "mock",
+        firstname = "mock",
+        lastname = "mock",
+        city = "mock",
+        state = "mock",
+        country = "mock",
+        sex = "mock",
+    )
+}

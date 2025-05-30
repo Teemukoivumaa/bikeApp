@@ -5,6 +5,13 @@ import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 
+object AuthenticationStateKeys {
+    const val UNAUTHENTICATED = "unauthenticated"
+    const val STRAVA_AUTH_STARTED = "strava_auth_started"
+    const val STRAVA_AUTH_FINISHED = "strava_auth_finished"
+    const val AUTHENTICATED = "authenticated"
+}
+
 class SecureStorageManager(context: Context) {
     private val masterKey: MasterKey = MasterKey.Builder(context)
         .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
@@ -18,16 +25,12 @@ class SecureStorageManager(context: Context) {
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
     )
 
-    fun saveCode(code: String) {
-        encryptedSharedPreferences.edit { putString("code", code) }
+    fun saveAuthenticationState(state: String) {
+        encryptedSharedPreferences.edit { putString("authentication_state", state) }
     }
 
-    fun getCode(): String? {
-        return encryptedSharedPreferences.getString("code", null)
-    }
-
-    fun deleteCode() {
-        encryptedSharedPreferences.edit { remove("code") }
+    fun getAuthenticationState(): String? {
+        return encryptedSharedPreferences.getString("authentication_state", AuthenticationStateKeys.UNAUTHENTICATED)
     }
 
     fun saveAccessToken(accessToken: String) {
@@ -88,5 +91,9 @@ class SecureStorageManager(context: Context) {
 
     fun deleteAthleteId() {
         encryptedSharedPreferences.edit { remove("athlete_id") }
+    }
+
+    fun saveScope(scope: String) {
+        encryptedSharedPreferences.edit { putString("scope", scope) }
     }
 }

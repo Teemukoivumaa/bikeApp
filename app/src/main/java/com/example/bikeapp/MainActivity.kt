@@ -14,19 +14,26 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.room.Room
 import com.example.bikeapp.data.local.AppDatabase
+import com.example.bikeapp.data.local.AuthenticationStateKeys.STRAVA_AUTH_FINISHED
 import com.example.bikeapp.data.local.SecureStorageManager
 import com.example.bikeapp.data.local.migrations.MIGRATION_1_2
 import com.example.bikeapp.data.local.migrations.MIGRATION_2_3
+import com.example.bikeapp.data.local.migrations.MIGRATION_3_4
 import com.example.bikeapp.data.remote.StravaRepository
+import com.example.bikeapp.data.remote.TokenRequest
 import com.example.bikeapp.ui.navigation.AppNavGraph
+import com.example.bikeapp.ui.screens.activities.ActivitiesViewModel
 import com.example.bikeapp.ui.screens.activities.ActivityViewModel
 import com.example.bikeapp.ui.screens.home.HomeScreenViewModel
 import com.example.bikeapp.ui.screens.strava.StravaLoginViewModel
 import com.example.bikeapp.ui.theme.BikeAppTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private lateinit var database: AppDatabase
     private lateinit var activityViewModel: ActivityViewModel
+    private lateinit var activitiesViewModel: ActivitiesViewModel
     private lateinit var stravaLoginViewModel: StravaLoginViewModel
     private lateinit var homeScreenViewModel: HomeScreenViewModel
 
@@ -39,7 +46,7 @@ class MainActivity : ComponentActivity() {
         database = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java, "bike-app-database"
-        ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build()
+        ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build()
 
         secureStorageManager = SecureStorageManager(applicationContext)
 
@@ -50,8 +57,9 @@ class MainActivity : ComponentActivity() {
 
         activityViewModel = ActivityViewModel(database)
         stravaLoginViewModel =
-            StravaLoginViewModel(database, secureStorageManager, stravaRepository)
+            StravaLoginViewModel(secureStorageManager, stravaRepository)
         homeScreenViewModel = HomeScreenViewModel(database)
+        activitiesViewModel = ActivitiesViewModel(stravaRepository, secureStorageManager, database)
 
         setContent {
             BikeAppTheme {
@@ -61,8 +69,8 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     AppNavGraph(
-                        database = database,
                         activityViewModel = activityViewModel,
+                        activitiesViewModel = activitiesViewModel,
                         stravaLoginViewModel = stravaLoginViewModel,
                         homeScreenViewModel = homeScreenViewModel
                     )
@@ -71,32 +79,61 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * This function is called when the user navigates back from the Strava authorization flow.
+     */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        Log.d("MainActivity", "onNewIntent: $intent")
         handleAuthorizationResponse(intent)
     }
 
+    /**
+     * This function handles the response from the Strava authorization flow.
+     *
+     * The intent uri should contain the authorization code and the scope.
+     */
     private fun handleAuthorizationResponse(intent: Intent?) {
         val uri: Uri? = intent?.data
         Log.d("MainActivity", "URI: $uri")
         if (uri != null) {
             if (uri.toString().startsWith("http://localhost")) {
                 val code = uri.getQueryParameter("code")
+                val scope = uri.getQueryParameter("scope")
+
                 if (code != null) {
                     Log.d("MainActivity", "Authorization Code: $code")
 
                     secureStorageManager.saveAccessToken(code)
+                    secureStorageManager.saveAuthenticationState(STRAVA_AUTH_FINISHED)
                 } else {
                     Log.e("MainActivity", "Authorization code not found.")
                 }
+
+                if (scope != null) {
+                    Log.d("MainActivity", "Authorization Scope: $scope")
+
+                    secureStorageManager.saveScope(scope)
+                } else {
+                    Log.e("MainActivity", "Authorization scope not found.")
+                }
             } else if (uri.toString().startsWith("bikeapp://callback")) {
                 val code = uri.getQueryParameter("code")
+                val scope = uri.getQueryParameter("scope")
+
                 if (code != null) {
                     Log.d("MainActivity", "Authorization Code: $code")
                     secureStorageManager.saveAccessToken(code)
+                    secureStorageManager.saveAuthenticationState(STRAVA_AUTH_FINISHED)
                 } else {
                     Log.e("MainActivity", "Authorization code not found.")
+                }
+
+                if (scope != null) {
+                    Log.d("MainActivity", "Authorization Scope: $scope")
+
+                    secureStorageManager.saveScope(scope)
+                } else {
+                    Log.e("MainActivity", "Authorization scope not found.")
                 }
             }
         }

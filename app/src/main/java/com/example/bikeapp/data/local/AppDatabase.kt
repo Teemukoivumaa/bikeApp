@@ -11,8 +11,8 @@ import com.example.bikeapp.data.model.StravaActivityEntity
 
 @Database(
     entities = [StravaActivityEntity::class, AthleteEntity::class, ActivityLocationEntity::class],
-    version = 3,
-    exportSchema = true
+    version = 4,
+    exportSchema = false
 )
 
 @TypeConverters(DateConverter::class, CoordinateConverter::class)

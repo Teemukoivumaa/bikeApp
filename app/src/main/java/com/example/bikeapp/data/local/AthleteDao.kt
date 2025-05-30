@@ -13,4 +13,7 @@ interface AthleteDao {
 
     @Query("SELECT * FROM athletes WHERE id = :id")
     suspend fun getAthleteById(id: Long): AthleteEntity?
+
+    @Query("SELECT * FROM athletes LIMIT 1")
+    suspend fun getAthlete(): AthleteEntity?
 }

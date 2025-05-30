@@ -3,6 +3,7 @@ package com.example.bikeapp.ui.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 
@@ -27,5 +28,10 @@ val bottomNavItems = listOf(
         name = "Strava",
         route = "strava_login",
         icon = Icons.Filled.Settings
+    ),
+    BottomNavItem(
+        name = "Profile",
+        route = "profile_screen",
+        icon = Icons.Filled.Person
     )
 )

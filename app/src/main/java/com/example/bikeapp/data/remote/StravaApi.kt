@@ -5,6 +5,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface StravaApi {
@@ -16,6 +17,12 @@ interface StravaApi {
 
     @GET("athlete")
     suspend fun getAthlete(@Header("Authorization") authorization: String): Response<Athlete>
+
+    @GET("activities/{id}")
+    suspend fun getActivity(
+        @Header("Authorization") authorization: String,
+        @Path("id") id: Long
+    ): Response<ActivityResponse>
 
     // "athlete/activities?before=epoch&after=epoch&page=int&per_page=int"
     @GET("athlete/activities")
