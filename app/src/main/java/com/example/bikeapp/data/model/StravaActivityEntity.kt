@@ -29,8 +29,35 @@ data class StravaActivityEntity(
     @ColumnInfo(name = "average_heartrate") val averageHeartrate: Float?,
     @ColumnInfo(name = "max_heartrate") val maxHeartrate: Float?,
     @ColumnInfo(name = "device_name") val deviceName: String?,
-    @ColumnInfo(name = "external_id") val externalId: String?
+    @ColumnInfo(name = "external_id") val externalId: String?,
+    @ColumnInfo(name = "full_info_fetched") val fullInfoFetched: Boolean = false
 )
+
+fun mockActivity(): StravaActivityEntity {
+    return StravaActivityEntity(
+        id = 1,
+        name = "Sample Activity",
+        type = "Ride",
+        distance = 28099F,
+        movingTime = 60,
+        elapsedTime = 60,
+        startDate = Date(),
+        activityEndTime = "12:00",
+        averageSpeed = 10.0f,
+        averageHeartrate = 10.0f,
+        maxHeartrate = 20.0f,
+        maxSpeed = 10.0f,
+        totalElevationGain = 10.0f,
+        averageWatts = 10.0f,
+        externalId = "externalId",
+        description = "desc",
+        calories = 200F,
+        sportType = "sport",
+        elevHigh = 100F,
+        elevLow = 10F,
+        deviceName = "Mock",
+    )
+}
 
 @Entity(
     tableName = "activity_locations",

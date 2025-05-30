@@ -1,13 +1,15 @@
 package com.example.bikeapp.ui.screens.activities
 
+import android.widget.Toast
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -16,12 +18,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
@@ -36,18 +41,25 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.bikeapp.R
 import com.example.bikeapp.data.model.StravaActivityEntity
+import com.example.bikeapp.data.model.mockActivity
 import com.example.bikeapp.ui.components.StatisticCard
 import com.example.bikeapp.ui.components.StatisticItemWithIcon
+import com.example.bikeapp.ui.screens.strava.SharedAuthViewModel
 import com.example.bikeapp.utils.convertMsToKmh
 import com.example.bikeapp.utils.convertMtoKm
 import com.example.bikeapp.utils.formatDate
@@ -56,6 +68,10 @@ import com.example.bikeapp.utils.formatDuration
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActivitiesScreen(viewModel: ActivityViewModel, navController: NavHostController) {
+    val context = LocalContext.current
+    val sharedAuthViewModel: SharedAuthViewModel = hiltViewModel()
+    val coroutineScope = rememberCoroutineScope()
+
     val activities by viewModel.activities.collectAsState()
     val totalLength by viewModel.totalLength.collectAsState()
 
@@ -68,6 +84,12 @@ fun ActivitiesScreen(viewModel: ActivityViewModel, navController: NavHostControl
 
     LaunchedEffect(firstVisibleItemScrollOffset) {
         showStatsCards = firstVisibleItemScrollOffset == 0
+        // Only when first started, check if token is valid and refresh if not
+        sharedAuthViewModel.refreshStravaToken(coroutineScope = coroutineScope)
+        // Listen for toast events and show them
+        sharedAuthViewModel.toastEvents.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        }
     }
 
     val animatedHeight by animateFloatAsState(
@@ -80,11 +102,20 @@ fun ActivitiesScreen(viewModel: ActivityViewModel, navController: NavHostControl
     )
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Activities") }) },
+        topBar = {
+            TopAppBar(title = { Text("Activities") }, actions = {
+                IconButton(onClick = { sharedAuthViewModel.fetchActivities() }) {
+                    Icon(
+                        Icons.Filled.Refresh,
+                        contentDescription = "Refresh activities",
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+            })
+        }
     ) { innerPadding ->
         Surface(
             modifier = Modifier
-                .fillMaxSize()
                 .padding(innerPadding),
             color = MaterialTheme.colorScheme.background
         ) {
@@ -115,7 +146,6 @@ fun ActivitiesScreen(viewModel: ActivityViewModel, navController: NavHostControl
                     items(activities) { activity ->
                         ActivityCard(
                             activity = activity,
-                            onDelete = { viewModel.deleteActivity(activity) },
                             onOpenDetailsPage = { selectedActivity ->
                                 navController.navigate("activityDetails/${selectedActivity.id}")
                             }
@@ -128,26 +158,10 @@ fun ActivitiesScreen(viewModel: ActivityViewModel, navController: NavHostControl
     }
 }
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ActivityCard(
+private fun ActivityCard(
     activity: StravaActivityEntity,
-    onDelete: () -> Unit,
-    onOpenDetailsPage: (StravaActivityEntity) -> Unit
-) {
-    ActivityCardContent(
-        activity = activity,
-        onDelete = onDelete,
-        onOpenDetailsPage = onOpenDetailsPage
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ActivityCardContent(
-    activity: StravaActivityEntity,
-    onDelete: () -> Unit,
     onOpenDetailsPage: (StravaActivityEntity) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
@@ -202,7 +216,6 @@ private fun ActivityCardContent(
         ) {
             ActivityDetailsBottomSheetContent(
                 activity = activity,
-                onDelete = onDelete,
                 onOpenDetailsPage = onOpenDetailsPage,
                 onShowBottomSheetChanged = onShowBottomSheetChanged
             )
@@ -210,11 +223,16 @@ private fun ActivityCardContent(
     }
 }
 
+data class ActivityDetailItem(
+    val label: String,
+    val value: String,
+    val icon: Int? = null, // Optional icon resource ID
+    val tooltip: String? = null
+)
 
 @Composable
 fun ActivityDetailsBottomSheetContent(
     activity: StravaActivityEntity,
-    onDelete: () -> Unit,
     onOpenDetailsPage: (StravaActivityEntity) -> Unit,
     onShowBottomSheetChanged: (Boolean) -> Unit
 ) {
@@ -223,138 +241,140 @@ fun ActivityDetailsBottomSheetContent(
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-        Column {
-            Row {
-                Column(modifier = Modifier.weight(5f)) {
-                    Text(
-                        text = activity.name,
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    StatisticItemWithIcon(
-                        icon = R.drawable.calendar,
-                        text = "${formatDate(activity.startDate)} - ${activity.activityEndTime}"
-                    )
-                }
+        // Top row details
+        Row {
+            Column(modifier = Modifier.weight(5f)) {
+                Text(
+                    text = activity.name,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                StatisticItemWithIcon(
+                    icon = R.drawable.calendar,
+                    text = "${formatDate(activity.startDate)} - ${activity.activityEndTime}"
+                )
+            }
 
-                FloatingActionButton(
-                    onClick = {
-                        onOpenDetailsPage(activity)
-                        onShowBottomSheetChanged(false)
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.read_more),
-                        contentDescription = "View details",
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(24.dp).weight(1f)
-                    )
+            FloatingActionButton(
+                onClick = {
+                    onOpenDetailsPage(activity)
+                    onShowBottomSheetChanged(false)
+                },
+                modifier = Modifier.weight(1f)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.read_more),
+                    contentDescription = "View details",
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .weight(1f)
+                )
+            }
+        }
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+        // Quick glance details using the dynamic component
+        val detailsList = listOf(
+            ActivityDetailItem(
+                label = "Distance",
+                value = convertMtoKm(activity.distance),
+                icon = R.drawable.distance,
+                tooltip = "Distance cycled"
+            ),
+            ActivityDetailItem(
+                label = "Time",
+                value = formatDuration(activity.elapsedTime),
+                icon = R.drawable.time,
+                tooltip = "Time cycled"
+            ),
+            ActivityDetailItem(
+                label = "Elevation Gain",
+                value = "${activity.totalElevationGain} m",
+                icon = R.drawable.altitude,
+                tooltip = "Total elevation gain"
+            ),
+            ActivityDetailItem(
+                label = "Avg Speed",
+                value = "${convertMsToKmh(activity.averageSpeed)} km/h",
+                icon = R.drawable.avg_speed,
+                tooltip = "Average speed"
+            ),
+            ActivityDetailItem(
+                label = "Max Speed",
+                value = "${convertMsToKmh(activity.maxSpeed)} km/h",
+                icon = R.drawable.max_speed,
+                tooltip = "Max speed"
+            ),
+            ActivityDetailItem(
+                label = "Max Heart Rate",
+                value = "${activity.maxHeartrate} bpm",
+                icon = R.drawable.max_heartrate,
+                tooltip = "Max heartrate"
+            ),
+            ActivityDetailItem(
+                label = "Avg Heart Rate",
+                value = "${activity.averageHeartrate} bpm",
+                icon = R.drawable.avg_heartrate,
+                tooltip = "Average heartrate"
+            )
+        )
+
+        DynamicActivityDetails(details = detailsList)
+    }
+}
+
+@Composable
+fun DynamicActivityDetails(details: List<ActivityDetailItem>) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        details.chunked(2).forEach { rowItems ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                rowItems.forEach { item ->
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (item.icon != null) {
+                            Image(
+                                painter = painterResource(id = item.icon),
+                                contentDescription = item.tooltip,
+                                modifier = Modifier.size(24.dp),
+                                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                        }
+                        Column {
+                            Text(text = item.value)
+                            item.tooltip?.let {
+                                Text(
+                                    text = it,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
+                        }
+                    }
                 }
             }
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-        ) {
-            StatisticItemWithIcon(
-                icon = R.drawable.distance,
-                text = convertMtoKm(activity.distance),
-                modifier = Modifier.weight(1f),
-                tooltipText = "Distance cycled"
-            )
-            StatisticItemWithIcon(
-                icon = R.drawable.time,
-                text = formatDuration(activity.elapsedTime),
-                modifier = Modifier.weight(1f),
-                tooltipText = "Time cycled"
-            )
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-        ) {
-            StatisticItemWithIcon(
-                icon = R.drawable.altitude,
-                text = "${activity.totalElevationGain} m",
-                modifier = Modifier.weight(1f),
-                tooltipText = "Total elevation gain"
-            )
-            StatisticItemWithIcon(
-                icon = R.drawable.avg_speed,
-                text = "${convertMsToKmh(activity.averageSpeed)} km/h",
-                modifier = Modifier.weight(1f),
-                tooltipText = "Average speed"
-            )
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-        ) {
-            StatisticItemWithIcon(
-                icon = R.drawable.max_speed,
-                text = "${convertMsToKmh(activity.maxSpeed)} km/h",
-                modifier = Modifier.weight(1f),
-                tooltipText = "Max speed"
-            )
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-        ) {
-            StatisticItemWithIcon(
-                icon = R.drawable.max_heartrate,
-                text = "${activity.maxHeartrate} bpm",
-                modifier = Modifier.weight(1f),
-                tooltipText = "Max heartrate"
-            )
-            StatisticItemWithIcon(
-                icon = R.drawable.avg_heartrate,
-                text = "${activity.averageHeartrate} bpm",
-                modifier = Modifier.weight(1f),
-                tooltipText = "Average heartrate"
-            )
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
 
-val mockActivity = StravaActivityEntity(
-    id = 1,
-    name = "Sample Activity",
-    type = "Ride",
-    distance = 28099F,
-    movingTime = 60,
-    elapsedTime = 60,
-    startDate = java.util.Date(),
-    activityEndTime = "12:00",
-    averageSpeed = 10.0f,
-    averageHeartrate = 10.0f,
-    maxHeartrate = 20.0f,
-    maxSpeed = 10.0f,
-    totalElevationGain = 10.0f,
-    averageWatts = 10.0f,
-    externalId = "externalId",
-    description = "desc",
-    calories = 200F,
-    sportType = "sport",
-    elevHigh = 100F,
-    elevLow = 10F,
-    deviceName = "Mock",
-)
 
 @Preview(showBackground = true)
 @Composable
 fun ActivityCardPreview() {
-    ActivityCard(activity = mockActivity, onDelete = { }, onOpenDetailsPage = {
-
+    ActivityCard(activity = mockActivity(), onOpenDetailsPage = {
     })
 }
 
@@ -362,8 +382,7 @@ fun ActivityCardPreview() {
 @Composable
 fun ActivityDetailsBottomSheetContentPreview() {
     ActivityDetailsBottomSheetContent(
-        activity = mockActivity,
-        onDelete = {},
+        activity = mockActivity(),
         onOpenDetailsPage = {},
         onShowBottomSheetChanged = { }
     )

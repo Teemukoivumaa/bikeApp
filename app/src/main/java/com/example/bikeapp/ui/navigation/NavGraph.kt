@@ -1,20 +1,26 @@
 package com.example.bikeapp.ui.navigation
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.bikeapp.data.local.AppDatabase
 import com.example.bikeapp.ui.screens.activities.ActivitiesScreen
-import com.example.bikeapp.ui.screens.activities.ActivityDetailsPage
+import com.example.bikeapp.ui.screens.activities.ActivitiesViewModel
+import com.example.bikeapp.ui.screens.activities.ActivityDetailsScreen
 import com.example.bikeapp.ui.screens.activities.ActivityViewModel
 import com.example.bikeapp.ui.screens.home.HomeScreen
 import com.example.bikeapp.ui.screens.home.HomeScreenViewModel
+import com.example.bikeapp.ui.screens.profile.ProfileScreen
 import com.example.bikeapp.ui.screens.strava.StravaLoginScreen
 import com.example.bikeapp.ui.screens.strava.StravaLoginViewModel
 
@@ -22,17 +28,32 @@ import com.example.bikeapp.ui.screens.strava.StravaLoginViewModel
 @Composable
 fun AppNavGraph(
     navController: NavHostController = rememberNavController(),
-    database: AppDatabase,
     activityViewModel: ActivityViewModel,
+    activitiesViewModel: ActivitiesViewModel,
     stravaLoginViewModel: StravaLoginViewModel,
     homeScreenViewModel: HomeScreenViewModel
 ) {
+    val layoutDirection = LocalLayoutDirection.current
+
+    // Leaves a thin line at the bottom, makes it so that the content doesn't overlap with the bottom navigation bar
+    val minimumBottomPadding = 8.dp
+    val reductionAmount = 48.dp
+
     Scaffold(
         bottomBar = { BottomNavigationBar(navController = navController) }
     ) { paddingValues ->
-        Column(modifier = Modifier.padding(paddingValues)) {
+        Column(
+            modifier = Modifier
+                .padding(
+                    start = paddingValues.calculateStartPadding(layoutDirection),
+                    end = paddingValues.calculateEndPadding(layoutDirection),
+                    bottom = max(minimumBottomPadding, paddingValues.calculateBottomPadding() - reductionAmount)
+                )
+        ) {
             NavHost(navController = navController, startDestination = "home_screen") {
-                composable("home_screen") { HomeScreen(homeScreenViewModel) }
+                composable("home_screen") {
+                    HomeScreen()
+                }
                 composable("activities_screen") {
                     ActivitiesScreen(
                         activityViewModel,
@@ -42,19 +63,17 @@ fun AppNavGraph(
                 composable("activityDetails/{activityId}") { backStackEntry ->
                     val activityId = backStackEntry.arguments?.getString("activityId")
 
-                    val activityIdLong = activityId?.toLongOrNull()
-
-                    if (activityIdLong != null) {
-                        val activity =
-                            database.stravaActivityDao().getActivityById(activityIdLong)
-                        val locations = database.locationDao().getLocationsByActivityId(activityIdLong)
-                        ActivityDetailsPage(activity = activity, locations = locations)
+                    if (activityId != null) {
+                        ActivityDetailsScreen(activitiesViewModel, activityId.toLong())
+                    } else {
+                        HomeScreen()
                     }
-
-
                 }
                 composable("strava_login") {
                     StravaLoginScreen(stravaLoginViewModel)
+                }
+                composable("profile_screen") {
+                    ProfileScreen()
                 }
             }
         }

@@ -29,6 +29,9 @@
       <SelectionState runConfigName="ActivityCardPreview">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
+      <SelectionState runConfigName="ActivityDetailsBottomSheetContentPreview">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
     </selectionStates>
   </component>
 </project>

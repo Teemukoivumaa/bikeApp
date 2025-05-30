@@ -55,3 +55,11 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
 
     }
 }
+
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        // Add new column to "strava_activities" table
+        // fullInfoFetched: Boolean = false
+        database.execSQL("ALTER TABLE strava_activities ADD COLUMN full_info_fetched INTEGER NOT NULL DEFAULT 0")
+    }
+}

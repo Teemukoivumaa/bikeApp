@@ -95,9 +95,28 @@ class StravaRepository(private val stravaApi: StravaApi = RetrofitClient.instanc
             Log.e("StravaRepository", "HttpException: ${e.message()}")
             null
         } catch (e: IOException) {
-
             Log.e("StravaRepository", "IOException: ${e.message}")
             null
         }
+    }
+
+    suspend fun getActivity(authorization: String, id: Long): ActivityResponse? = withContext(Dispatchers.IO) {
+        val authorizationHeader = "Bearer $authorization"
+
+        try {
+            val response = stravaApi.getActivity(authorizationHeader, id)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                Log.e("StravaRepository", "Error getActivity: ${response.errorBody()?.string()}")
+                null
+            }
+        } catch (e: HttpException) {
+            Log.e("StravaRepository", "HttpException: ${e.message()}")
+        } catch (e: IOException) {
+            Log.e("StravaRepository", "IOException: ${e.message}")
+            null
+        } as ActivityResponse?
+
     }
 }
