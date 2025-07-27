@@ -180,7 +180,7 @@ class SharedAuthViewModel @Inject constructor(
                         continue
                     }
 
-                    val startDate = convertStringToDateUsingTime(activity.startDateLocal)
+                    val startDate = convertStringToDateUsingTime(activity.startDate, activity.timezone)
                     val activityEndTime = calculateEndTime(startDate, activity.movingTime)
                     val newActivity = StravaActivityEntity(
                         id = 0,
