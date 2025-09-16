@@ -30,12 +30,6 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments["room.schemaLocation"] = file("schemas").absolutePath
-            }
-        }
     }
 
     buildTypes {
@@ -132,6 +126,7 @@ dependencies {
     implementation ("com.google.dagger:hilt-android:2.56.1")
     kapt("com.google.dagger:hilt-compiler:2.56.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation ("io.github.ehsannarmani:compose-charts:0.1.7")
 
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")

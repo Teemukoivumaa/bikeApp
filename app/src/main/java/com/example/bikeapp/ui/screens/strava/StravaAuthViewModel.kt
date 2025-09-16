@@ -25,9 +25,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -42,6 +41,16 @@ class SharedAuthViewModel @Inject constructor(
     // Channel for one-time events like showing a toast
     private val _toastEvents = Channel<String>()
     val toastEvents = _toastEvents.receiveAsFlow() // Expose as Flow
+
+    // Trigger to notify the data has been fetched
+    private val _refreshTrigger = MutableSharedFlow<Unit>()
+    val refreshTrigger: SharedFlow<Unit> = _refreshTrigger
+
+    fun notifyDataFetched() {
+        viewModelScope.launch {
+            _refreshTrigger.emit(Unit)
+        }
+    }
 
     fun getRefreshToken(): String? {
         return secureStorageManager.getRefreshToken()
@@ -129,7 +138,7 @@ class SharedAuthViewModel @Inject constructor(
                 )
 
                 withContext(Dispatchers.IO) {
-                    database.stravaAthleteDao().insertAthlete(newStravaAthlete)
+                    database.athleteDao().insertAthlete(newStravaAthlete)
                 }
 
             } else {
@@ -258,7 +267,9 @@ class SharedAuthViewModel @Inject constructor(
                     Log.d("StravaLoginScreen", "No new activities to insert.")
                 }
 
+                // Send toast event to Ui and notification to refresh
                 _toastEvents.send("Finished fetching activities")
+                notifyDataFetched()
 
             } else {
                 Log.e("StravaLoginScreen", "Failed to get activities.")
