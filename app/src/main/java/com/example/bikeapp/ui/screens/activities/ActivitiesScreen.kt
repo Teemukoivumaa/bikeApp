@@ -92,6 +92,12 @@ fun ActivitiesScreen(viewModel: ActivityViewModel, navController: NavHostControl
         }
     }
 
+    LaunchedEffect(Unit) {
+        sharedAuthViewModel.refreshTrigger.collect {
+            viewModel.refreshActivities()
+        }
+    }
+
     val animatedHeight by animateFloatAsState(
         targetValue = if (showStatsCards) 150f else 0f,
         animationSpec = tween(
