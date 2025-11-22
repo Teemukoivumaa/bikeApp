@@ -1,5 +1,6 @@
 package com.example.bikeapp.ui.navigation
 
+import com.example.bikeapp.ui.screens.challenges.ChallengesScreen
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -11,15 +12,19 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.bikeapp.ui.screens.activities.ActivitiesScreen
 import com.example.bikeapp.ui.screens.activities.ActivitiesViewModel
 import com.example.bikeapp.ui.screens.activities.ActivityDetailsScreen
 import com.example.bikeapp.ui.screens.activities.ActivityViewModel
+import com.example.bikeapp.ui.screens.challenges.ChallengeCreationScreen
+import com.example.bikeapp.ui.screens.challenges.ChallengeDetailsScreen
 import com.example.bikeapp.ui.screens.home.HomeScreen
-import com.example.bikeapp.ui.screens.home.HomeScreenViewModel
+import com.example.bikeapp.ui.screens.profile.CreateAccountScreen
 import com.example.bikeapp.ui.screens.profile.ProfileScreen
 import com.example.bikeapp.ui.screens.strava.StravaLoginScreen
 import com.example.bikeapp.ui.screens.strava.StravaLoginViewModel
@@ -31,7 +36,6 @@ fun AppNavGraph(
     activityViewModel: ActivityViewModel,
     activitiesViewModel: ActivitiesViewModel,
     stravaLoginViewModel: StravaLoginViewModel,
-    homeScreenViewModel: HomeScreenViewModel
 ) {
     val layoutDirection = LocalLayoutDirection.current
 
@@ -69,11 +73,27 @@ fun AppNavGraph(
                         HomeScreen()
                     }
                 }
+                composable("challenges") {
+                    ChallengesScreen(navController)
+                }
+                composable("create_challenge") {
+                    ChallengeCreationScreen(navController)
+                }
+                composable("challengeDetails/{challengeId}") { backStackEntry ->
+                    val challengeId = backStackEntry.arguments?.getString("challengeId")
+
+                    if (challengeId != null) {
+                        ChallengeDetailsScreen(navController = navController, challengeId = challengeId.toInt())
+                    }
+                }
                 composable("strava_login") {
                     StravaLoginScreen(stravaLoginViewModel)
                 }
                 composable("profile_screen") {
-                    ProfileScreen()
+                    ProfileScreen(navController)
+                }
+                composable("create_profile") {
+                    CreateAccountScreen(navController)
                 }
             }
         }

@@ -37,7 +37,7 @@ class ProfileScreenViewModel @Inject constructor (
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
-                val athlete = database.stravaAthleteDao().getAthlete()
+                val athlete = database.athleteDao().getAthlete()
 
                 if (athlete == null) {
                     _uiState.update {

@@ -1,4 +1,4 @@
-package com.example.bikeapp.data.local
+package com.example.bikeapp.data.local.databaseAccess
 
 import androidx.room.Dao
 import androidx.room.Insert
@@ -10,10 +10,10 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface StravaActivityDao {
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertAll(activities: List<StravaActivityEntity>): List<Long>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insert(activity: StravaActivityEntity): Long
 
     @Update
@@ -33,6 +33,12 @@ interface StravaActivityDao {
 
     @Query("SELECT * FROM strava_activities ORDER BY start_date DESC LIMIT 1")
     fun getLatestActivity(): Flow<StravaActivityEntity>
+
+    @Query("SELECT * FROM strava_activities ORDER BY start_date DESC LIMIT :limit")
+    fun getLatestActivities(limit: Int): Flow<List<StravaActivityEntity>>
+
+    @Query("SELECT * FROM strava_activities WHERE start_date >= :startDate AND start_date <= :endDate")
+    fun getActivitiesByDate(startDate: Long, endDate: Long): Flow<List<StravaActivityEntity>>
 
     @Query("DELETE FROM strava_activities WHERE id = :id")
     suspend fun deleteActivityById(id: Long)
