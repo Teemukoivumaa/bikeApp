@@ -1,6 +1,5 @@
 package com.example.bikeapp.ui.navigation
 
-import com.example.bikeapp.ui.screens.challenges.ChallengesScreen
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -12,17 +11,16 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.example.bikeapp.ui.screens.activities.ActivitiesScreen
 import com.example.bikeapp.ui.screens.activities.ActivitiesViewModel
 import com.example.bikeapp.ui.screens.activities.ActivityDetailsScreen
 import com.example.bikeapp.ui.screens.activities.ActivityViewModel
 import com.example.bikeapp.ui.screens.challenges.ChallengeCreationScreen
 import com.example.bikeapp.ui.screens.challenges.ChallengeDetailsScreen
+import com.example.bikeapp.ui.screens.challenges.ChallengesScreen
 import com.example.bikeapp.ui.screens.home.HomeScreen
 import com.example.bikeapp.ui.screens.profile.CreateAccountScreen
 import com.example.bikeapp.ui.screens.profile.ProfileScreen

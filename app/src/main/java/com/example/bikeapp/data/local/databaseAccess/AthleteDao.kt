@@ -8,7 +8,7 @@ import com.example.bikeapp.data.model.AthleteEntity
 
 @Dao
 interface AthleteDao {
-    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAthlete(athlete: AthleteEntity)
 
     @Query("SELECT * FROM athletes WHERE id = :id")
