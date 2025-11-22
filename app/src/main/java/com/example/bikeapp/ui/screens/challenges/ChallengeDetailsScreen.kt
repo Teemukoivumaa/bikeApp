@@ -13,13 +13,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -37,8 +34,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.bikeapp.data.model.ChallengeEntity
+import com.example.bikeapp.ui.components.ProgressCard
 import com.example.bikeapp.utils.formatDate
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -109,48 +106,14 @@ fun ChallengeDetailsScreen(
                 Text(currentChallenge.description, style = MaterialTheme.typography.bodyLarge)
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Card(elevation = CardDefaults.cardElevation(4.dp)) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            "Progress",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        LinearProgressIndicator(
-                            progress = { progress },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(12.dp),
-                            color = progressColor,
-                            trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = String.format(
-                                    Locale.getDefault(),
-                                    "%.1f ${currentChallenge.unit.unit}",
-                                    currentChallenge.currentProgress
-                                ),
-                                style = MaterialTheme.typography.bodySmall,
-                            )
-                            Text(
-                                text = String.format(
-                                    Locale.getDefault(),
-                                    "%.1f ${currentChallenge.unit.unit}",
-                                    currentChallenge.goal
-                                ),
-                                style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
+                ProgressCard(
+                    title = "Progress",
+                    progress = progress,
+                    progressColor = progressColor,
+                    currentProgress = currentChallenge.currentProgress,
+                    goal = currentChallenge.goal,
+                    unit = currentChallenge.unit.unit
+                )
 
                 Spacer(modifier = Modifier.height(24.dp))
 

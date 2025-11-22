@@ -54,7 +54,7 @@ fun AppNavGraph(
         ) {
             NavHost(navController = navController, startDestination = "home_screen") {
                 composable("home_screen") {
-                    HomeScreen()
+                    HomeScreen(navController = navController)
                 }
                 composable("activities_screen") {
                     ActivitiesScreen(
@@ -68,7 +68,7 @@ fun AppNavGraph(
                     if (activityId != null) {
                         ActivityDetailsScreen(activitiesViewModel, activityId.toLong())
                     } else {
-                        HomeScreen()
+                        HomeScreen(navController = navController)
                     }
                 }
                 composable("challenges") {

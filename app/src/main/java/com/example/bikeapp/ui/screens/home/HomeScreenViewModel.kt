@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bikeapp.data.local.AppDatabase
+import com.example.bikeapp.data.model.AthleteEntity
+import com.example.bikeapp.data.model.ChallengeEntity
 import com.example.bikeapp.data.model.StravaActivityEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
@@ -27,10 +29,42 @@ class HomeScreenViewModel @Inject constructor(private val database: AppDatabase)
     private val _weeklyStats = MutableStateFlow<Map<String, Number>>(emptyMap())
     val weeklyStats: StateFlow<Map<String, Number>> = _weeklyStats.asStateFlow()
 
+    private val _activeChallenge = MutableStateFlow<ChallengeEntity?>(null)
+    val activeChallenge: StateFlow<ChallengeEntity?> = _activeChallenge.asStateFlow()
+
+    private val _athleteEntity = MutableStateFlow<AthleteEntity?>(null)
+    val athleteEntity: StateFlow<AthleteEntity?> = _athleteEntity.asStateFlow()
+
     init {
+        fetchAthlete()
         fetchLatestRides()
         fetchRidesForToday()
         calculateWeeklyStats()
+        fetchActiveChallenge()
+    }
+
+    private fun fetchAthlete() {
+        viewModelScope.launch {
+            val athlete = database.athleteDao().getAthlete()
+
+            if (athlete != null) {
+                _athleteEntity.value = athlete
+            }
+        }
+    }
+
+    private fun fetchActiveChallenge() {
+        viewModelScope.launch {
+            database.challengeDao().getActiveChallenges()
+                .catch { e ->
+                    Log.e("HomeScreenViewModel", "Error fetching active challenge", e)
+                }
+                .collect { challenges ->
+                    if (challenges.isNotEmpty()) {
+                        _activeChallenge.value = challenges.first()
+                    }
+                }
+        }
     }
 
     private fun fetchLatestRides() {
