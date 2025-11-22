@@ -63,3 +63,26 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
         database.execSQL("ALTER TABLE strava_activities ADD COLUMN full_info_fetched INTEGER NOT NULL DEFAULT 0")
     }
 }
+
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        // Add new table "challenges"
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS "challenges" (
+                "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                "name" TEXT NOT NULL,
+                "description" TEXT NOT NULL,
+                "goal" REAL NOT NULL,
+                "current_progress" REAL NOT NULL,
+                "unit" TEXT NOT NULL,
+                "start_date" INTEGER NOT NULL,
+                "end_date" INTEGER NOT NULL,
+                "is_active" INTEGER NOT NULL DEFAULT 1,
+                "is_completed" INTEGER NOT NULL DEFAULT 0,
+                "recurring" TEXT DEFAULT NULL
+                )
+            """
+        )
+    }
+}

@@ -1,4 +1,4 @@
-package com.example.bikeapp.data.local
+package com.example.bikeapp.data.local.databaseAccess
 
 import androidx.room.Dao
 import androidx.room.Insert
@@ -9,10 +9,10 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface LocationDao {
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insert(location: ActivityLocationEntity): Long
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertAll(locations: List<ActivityLocationEntity>)
 
     @Query("SELECT * FROM activity_locations WHERE id = :id")

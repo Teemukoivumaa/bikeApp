@@ -1,12 +1,8 @@
 package com.example.bikeapp.di
 
 import android.content.Context
-import androidx.room.Room
 import com.example.bikeapp.data.local.AppDatabase
 import com.example.bikeapp.data.local.SecureStorageManager
-import com.example.bikeapp.data.local.migrations.MIGRATION_1_2
-import com.example.bikeapp.data.local.migrations.MIGRATION_2_3
-import com.example.bikeapp.data.local.migrations.MIGRATION_3_4
 import com.example.bikeapp.data.remote.StravaRepository
 import dagger.Module
 import dagger.Provides
@@ -22,10 +18,7 @@ object AppModule {
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
-        return Room.databaseBuilder(
-            context,
-            AppDatabase::class.java, "bike-app-database"
-        ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build()
+        return AppDatabase.getInstance(context)
     }
 
     @Provides

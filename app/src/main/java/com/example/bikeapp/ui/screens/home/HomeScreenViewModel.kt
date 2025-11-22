@@ -1,86 +1,154 @@
 package com.example.bikeapp.ui.screens.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bikeapp.data.local.AppDatabase
 import com.example.bikeapp.data.model.StravaActivityEntity
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
-import java.util.Date
+import java.util.Calendar
+import java.util.concurrent.TimeUnit
 
-class HomeScreenViewModel(private val database: AppDatabase) : ViewModel() {
+@HiltViewModel
+class HomeScreenViewModel @Inject constructor(private val database: AppDatabase) : ViewModel() {
 
-    private val _recentRide = MutableStateFlow<StravaActivityEntity>(
-        StravaActivityEntity(
-            id = 0,
-            name = "mock",
-            startDate = Date(),
-            distance = 0.0f,
-            type = "Ride",
-            movingTime = 10,
-            elapsedTime = 20,
-            activityEndTime = "12:00",
-            averageSpeed = 2.0F,
-            maxSpeed = 5.0F,
-            totalElevationGain = 500F,
-            averageWatts = 5F,
-            externalId = "externalId",
-            description = "desc",
-            calories = 200F,
-            sportType = "sport",
-            elevHigh = 100F,
-            elevLow = 10F,
-            deviceName = "Mock",
-            averageHeartrate = 10.0f,
-            maxHeartrate = 20.0f,
-        )
-    )
-    val recentRide: StateFlow<StravaActivityEntity> = _recentRide
+    private val _latestRides = MutableStateFlow<List<StravaActivityEntity>>(emptyList())
+    val latestRides: StateFlow<List<StravaActivityEntity>> = _latestRides.asStateFlow()
+
+    private val _ridesToday = MutableStateFlow<List<StravaActivityEntity>>(emptyList())
+    val ridesToday: StateFlow<List<StravaActivityEntity>> = _ridesToday.asStateFlow()
+
+    private val _weeklyStats = MutableStateFlow<Map<String, Number>>(emptyMap())
+    val weeklyStats: StateFlow<Map<String, Number>> = _weeklyStats.asStateFlow()
 
     init {
-        loadRecentRide()
+        fetchLatestRides()
+        fetchRidesForToday()
+        calculateWeeklyStats()
     }
 
-    private fun loadRecentRide() {
+    private fun fetchLatestRides() {
         viewModelScope.launch {
-            database.stravaActivityDao().getLatestActivity().collect {
-                _recentRide.value = it
+            database.stravaActivityDao()
+                .getLatestActivities(limit = 3) // Assuming this returns Flow<List<StravaActivityEntity>>
+                .catch { e ->
+                    Log.e("HomeScreenViewModel", "Error collecting latest rides:", e)
+                    _latestRides.value = emptyList()
+                }
+                .collect { rides ->
+                    Log.d("HomeScreenViewModel", "Latest rides: $rides")
+                    if (rides.isNotEmpty()) {
+                        _latestRides.value = rides
+                    } else {
+                        _latestRides.value = emptyList()
+                    }
+                }
+        }
+    }
+
+    private fun fetchRidesForToday() {
+        viewModelScope.launch {
+            val now = Calendar.getInstance()
+            val hoursToSubtract = now.get(Calendar.HOUR_OF_DAY)
+            val minutesToSubtract = now.get(Calendar.MINUTE)
+
+            val startOfTodayMillis = System.currentTimeMillis() -
+                    TimeUnit.HOURS.toMillis(hoursToSubtract.toLong()) -
+                    TimeUnit.MINUTES.toMillis(minutesToSubtract.toLong())
+            database.stravaActivityDao()
+                .getActivitiesByDate(
+                    startDate = startOfTodayMillis, // Calculated start time of today (00:00)
+                    endDate = System.currentTimeMillis() // Current time
+                )
+                .catch { e ->
+                    Log.e("HomeScreenViewModel", "Error collecting rides for today:", e)
+                    _ridesToday.value = emptyList()
+                }
+                .collect { rides ->
+                    Log.d("HomeScreenViewModel", "Rides for today: $rides")
+                    if (rides.isNotEmpty()) {
+                        _ridesToday.value = rides
+                    } else {
+                        _ridesToday.value = emptyList()
+                    }
+                }
+        }
+    }
+
+    /**
+     * Calculates the weekly stats for the user.
+     *
+     * The weekly stats include:
+     * - Total distance
+     * - Total time
+     * - Average speed
+     *
+     * @return A map containing the weekly stats.
+     */
+    private fun calculateWeeklyStats() {
+        viewModelScope.launch {
+            val stats = mutableMapOf<String, Number>()
+            val now = Calendar.getInstance()
+
+            // Calculate the start and end dates for the week
+            // TODO: Create a way for the user to select the start and end dates in settings
+            val startOfWeek = (now.clone() as Calendar).apply {
+                set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
             }
+
+            val endOfWeek = (now.clone() as Calendar).apply {
+                set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
+                add(Calendar.WEEK_OF_YEAR, 1) // Move to next Sunday
+            }
+
+            Log.d("HomeScreenViewModel", "Start of week: ${startOfWeek.timeInMillis}")
+            Log.d("HomeScreenViewModel", "End of week: ${endOfWeek.timeInMillis}")
+
+            // Query the database for activities within the week
+            database.stravaActivityDao()
+                .getActivitiesByDate(
+                    startDate = startOfWeek.timeInMillis,
+                    endDate = endOfWeek.timeInMillis
+                )
+                .catch { e ->
+                    Log.e("HomeScreenViewModel", "Error collecting activities for week:", e)
+                }
+                .collect { activities ->
+                    Log.d("HomeScreenViewModel", "Activities for week: $activities")
+
+                    if (!activities.isNotEmpty()) {
+                        stats["totalDistance"] = 0f
+                        stats["totalTime"] = 0
+                        stats["averageSpeed"] = 0f
+
+                        _weeklyStats.value = stats
+                        return@collect
+                    }
+
+                    var totalDistance = 0f
+                    var totalTime = 0
+                    var totalSpeed = 0f
+
+                    activities.forEach { activity ->
+                        totalDistance += activity.distance
+                        totalTime += activity.elapsedTime
+                        totalSpeed += activity.averageSpeed
+                    }
+
+                    stats["totalDistance"] = totalDistance
+                    stats["totalTime"] = totalTime
+                    stats["averageSpeed"] = totalSpeed / activities.size
+
+                    _weeklyStats.value = stats
+                }
         }
-    }
 
-    fun addActivity(name: String, date: Date = Date()) {
-        var distance = 7092.39990234375
-
-        viewModelScope.launch {
-            val newActivity = StravaActivityEntity(
-                id = 0, // Assuming auto-increment in the database
-                name = name,
-                startDate = date,
-                distance = distance.toFloat(),
-                type = "Ride",
-                movingTime = 1000,
-                elapsedTime = 2000,
-                activityEndTime = "12:00",
-                averageSpeed = 2.0F,
-                maxSpeed = 5.0F,
-                totalElevationGain = 500F,
-                averageWatts = 5F,
-                externalId = "externalId",
-                description = "desc",
-                calories = 200F,
-                sportType = "sport",
-                elevHigh = 100F,
-                elevLow = 10F,
-                deviceName = "Mock",
-                averageHeartrate = 10.0f,
-                maxHeartrate = 20.0f,
-            )
-            database.stravaActivityDao().insert(newActivity)
-
-            loadRecentRide() // Refresh the list after adding
-        }
     }
 
 }

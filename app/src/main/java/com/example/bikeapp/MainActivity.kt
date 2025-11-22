@@ -12,19 +12,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import androidx.room.Room
 import com.example.bikeapp.data.local.AppDatabase
 import com.example.bikeapp.data.local.AuthenticationStateKeys.STRAVA_AUTH_FINISHED
 import com.example.bikeapp.data.local.SecureStorageManager
-import com.example.bikeapp.data.local.migrations.MIGRATION_1_2
-import com.example.bikeapp.data.local.migrations.MIGRATION_2_3
-import com.example.bikeapp.data.local.migrations.MIGRATION_3_4
 import com.example.bikeapp.data.remote.StravaRepository
-import com.example.bikeapp.data.remote.TokenRequest
 import com.example.bikeapp.ui.navigation.AppNavGraph
 import com.example.bikeapp.ui.screens.activities.ActivitiesViewModel
 import com.example.bikeapp.ui.screens.activities.ActivityViewModel
-import com.example.bikeapp.ui.screens.home.HomeScreenViewModel
 import com.example.bikeapp.ui.screens.strava.StravaLoginViewModel
 import com.example.bikeapp.ui.theme.BikeAppTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -35,7 +29,6 @@ class MainActivity : ComponentActivity() {
     private lateinit var activityViewModel: ActivityViewModel
     private lateinit var activitiesViewModel: ActivitiesViewModel
     private lateinit var stravaLoginViewModel: StravaLoginViewModel
-    private lateinit var homeScreenViewModel: HomeScreenViewModel
 
     private lateinit var paddingValues: PaddingValues
     private lateinit var secureStorageManager: SecureStorageManager
@@ -43,10 +36,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        database = Room.databaseBuilder(
-            applicationContext,
-            AppDatabase::class.java, "bike-app-database"
-        ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build()
+        database = AppDatabase.getInstance(applicationContext)
 
         secureStorageManager = SecureStorageManager(applicationContext)
 
@@ -58,7 +48,6 @@ class MainActivity : ComponentActivity() {
         activityViewModel = ActivityViewModel(database)
         stravaLoginViewModel =
             StravaLoginViewModel(secureStorageManager, stravaRepository)
-        homeScreenViewModel = HomeScreenViewModel(database)
         activitiesViewModel = ActivitiesViewModel(stravaRepository, secureStorageManager, database)
 
         setContent {
@@ -72,7 +61,6 @@ class MainActivity : ComponentActivity() {
                         activityViewModel = activityViewModel,
                         activitiesViewModel = activitiesViewModel,
                         stravaLoginViewModel = stravaLoginViewModel,
-                        homeScreenViewModel = homeScreenViewModel
                     )
                 }
             }
