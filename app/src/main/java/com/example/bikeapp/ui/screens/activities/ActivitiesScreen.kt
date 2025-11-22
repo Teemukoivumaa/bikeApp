@@ -64,6 +64,7 @@ import com.example.bikeapp.utils.convertMsToKmh
 import com.example.bikeapp.utils.convertMtoKm
 import com.example.bikeapp.utils.formatDate
 import com.example.bikeapp.utils.formatDuration
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,17 +85,21 @@ fun ActivitiesScreen(viewModel: ActivityViewModel, navController: NavHostControl
 
     LaunchedEffect(firstVisibleItemScrollOffset) {
         showStatsCards = firstVisibleItemScrollOffset == 0
-        // Only when first started, check if token is valid and refresh if not
-        sharedAuthViewModel.refreshStravaToken(coroutineScope = coroutineScope)
-        // Listen for toast events and show them
-        sharedAuthViewModel.toastEvents.collect { message ->
-            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-        }
     }
 
     LaunchedEffect(Unit) {
-        sharedAuthViewModel.refreshTrigger.collect {
-            viewModel.refreshActivities()
+        // Only when first started, check if token is valid and refresh if not
+        sharedAuthViewModel.refreshStravaToken(coroutineScope = coroutineScope)
+        // Listen for toast events and show them
+        launch {
+            sharedAuthViewModel.toastEvents.collect { message ->
+                Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+            }
+        }
+        launch {
+            sharedAuthViewModel.refreshTrigger.collect {
+                viewModel.refreshActivities()
+            }
         }
     }
 
@@ -172,7 +177,7 @@ private fun ActivityCard(
 ) {
     val sheetState = rememberModalBottomSheetState()
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
-    var onShowBottomSheetChanged: (Boolean) -> Unit = remember {
+    val onShowBottomSheetChanged: (Boolean) -> Unit = remember {
         { newValue -> showBottomSheet = newValue }
     }
 
@@ -393,4 +398,3 @@ fun ActivityDetailsBottomSheetContentPreview() {
         onShowBottomSheetChanged = { }
     )
 }
-
