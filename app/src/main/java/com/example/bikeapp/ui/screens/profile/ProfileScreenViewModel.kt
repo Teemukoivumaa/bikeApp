@@ -66,7 +66,4 @@ class ProfileScreenViewModel @Inject constructor (
         }
     }
 
-    fun clearErrorMessage() {
-        _uiState.update { it.copy(errorMessage = null) }
-    }
 }

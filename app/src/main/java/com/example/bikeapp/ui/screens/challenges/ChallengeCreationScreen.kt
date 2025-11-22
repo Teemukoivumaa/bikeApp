@@ -158,7 +158,7 @@ fun ChallengeCreationScreen(navController: NavController) {
                 ExposedDropdownMenuBox(
                     expanded = expandedChallengeUnit,
                     onExpandedChange = {
-                        expandedChallengeUnit = !expandedChallengeUnit
+                        !expandedChallengeUnit
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -279,7 +279,7 @@ fun ChallengeCreationScreen(navController: NavController) {
                     ExposedDropdownMenuBox(
                         expanded = expandedRecurringChallenge,
                         onExpandedChange = {
-                            expandedRecurringChallenge = !expandedRecurringChallenge
+                            !expandedRecurringChallenge
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {

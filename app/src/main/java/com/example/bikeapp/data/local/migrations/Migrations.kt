@@ -4,14 +4,14 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 val MIGRATION_1_2 = object : Migration(1, 2) {
-    override fun migrate(database: SupportSQLiteDatabase) {
+    override fun migrate(db: SupportSQLiteDatabase) {
         // Add a new column to the "strava_activities" table
-        database.execSQL("ALTER TABLE strava_activities ADD COLUMN activity_end_time TEXT NOT NULL DEFAULT ''")
+        db.execSQL("ALTER TABLE strava_activities ADD COLUMN activity_end_time TEXT NOT NULL DEFAULT ''")
     }
 }
 
 val MIGRATION_2_3 = object : Migration(2, 3) {
-    override fun migrate(database: SupportSQLiteDatabase) {
+    override fun migrate(db: SupportSQLiteDatabase) {
         // Add new columns to the "strava_activities" table
         // description: String?,
         // calories: Float?,
@@ -22,18 +22,18 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
         // average_heartrate: Float?,
         // max_heartrate: Float?,
 
-        database.execSQL("ALTER TABLE strava_activities ADD COLUMN description TEXT")
-        database.execSQL("ALTER TABLE strava_activities ADD COLUMN calories REAL")
-        database.execSQL("ALTER TABLE strava_activities ADD COLUMN sport_type TEXT NOT NULL DEFAULT ''")
-        database.execSQL("ALTER TABLE strava_activities ADD COLUMN elev_high REAL NOT NULL DEFAULT 0.0")
-        database.execSQL("ALTER TABLE strava_activities ADD COLUMN elev_low REAL NOT NULL DEFAULT 0.0")
-        database.execSQL("ALTER TABLE strava_activities ADD COLUMN device_name TEXT")
-        database.execSQL("ALTER TABLE strava_activities ADD COLUMN average_heartrate REAL")
-        database.execSQL("ALTER TABLE strava_activities ADD COLUMN max_heartrate REAL")
+        db.execSQL("ALTER TABLE strava_activities ADD COLUMN description TEXT")
+        db.execSQL("ALTER TABLE strava_activities ADD COLUMN calories REAL")
+        db.execSQL("ALTER TABLE strava_activities ADD COLUMN sport_type TEXT NOT NULL DEFAULT ''")
+        db.execSQL("ALTER TABLE strava_activities ADD COLUMN elev_high REAL NOT NULL DEFAULT 0.0")
+        db.execSQL("ALTER TABLE strava_activities ADD COLUMN elev_low REAL NOT NULL DEFAULT 0.0")
+        db.execSQL("ALTER TABLE strava_activities ADD COLUMN device_name TEXT")
+        db.execSQL("ALTER TABLE strava_activities ADD COLUMN average_heartrate REAL")
+        db.execSQL("ALTER TABLE strava_activities ADD COLUMN max_heartrate REAL")
 
         // Add new table "activity_locations"
 
-        database.execSQL(
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS "activity_locations" (
                 "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -46,7 +46,7 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
                 )
             """
         )
-        database.execSQL(
+        db.execSQL(
             """
                 CREATE INDEX IF NOT EXISTS "index_activity_locations_activity_id"
                 ON "activity_locations" ("activity_id" ASC)
@@ -57,17 +57,17 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
 }
 
 val MIGRATION_3_4 = object : Migration(3, 4) {
-    override fun migrate(database: SupportSQLiteDatabase) {
+    override fun migrate(db: SupportSQLiteDatabase) {
         // Add new column to "strava_activities" table
         // fullInfoFetched: Boolean = false
-        database.execSQL("ALTER TABLE strava_activities ADD COLUMN full_info_fetched INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE strava_activities ADD COLUMN full_info_fetched INTEGER NOT NULL DEFAULT 0")
     }
 }
 
 val MIGRATION_4_5 = object : Migration(4, 5) {
-    override fun migrate(database: SupportSQLiteDatabase) {
+    override fun migrate(db: SupportSQLiteDatabase) {
         // Add new table "challenges"
-        database.execSQL(
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS "challenges" (
                 "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
