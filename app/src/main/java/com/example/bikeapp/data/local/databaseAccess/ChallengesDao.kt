@@ -26,7 +26,7 @@ interface ChallengesDao {
     fun getChallengeByName(name: String): ChallengeEntity?
 
     @Query("SELECT * FROM challenges WHERE is_active = 1")
-    fun getActiveChallenges(): List<ChallengeEntity>
+    fun getActiveChallenges(): Flow<List<ChallengeEntity>>
 
     @Query("SELECT * FROM challenges WHERE is_completed = 1")
     fun getCompletedChallenges(): List<ChallengeEntity>

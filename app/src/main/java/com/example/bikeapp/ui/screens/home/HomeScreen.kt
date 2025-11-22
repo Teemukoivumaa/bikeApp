@@ -1,6 +1,7 @@
 package com.example.bikeapp.ui.screens.home
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,14 +14,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -35,7 +32,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.example.bikeapp.R
+import com.example.bikeapp.ui.components.ProgressCard
 import com.example.bikeapp.utils.convertMsToKmh
 import com.example.bikeapp.utils.convertMtoKm
 import com.example.bikeapp.utils.formatDate
@@ -44,20 +43,19 @@ import com.example.bikeapp.utils.formatDuration
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen() {
+fun HomeScreen(navController: NavController) {
     val scrollState = rememberScrollState()
 
     val viewModel: HomeScreenViewModel = hiltViewModel()
 
-    val latestRidesFlow by viewModel.latestRides.collectAsState()
-    val latestRides = latestRidesFlow.map { it }
+    val latestRides by viewModel.latestRides.collectAsState()
 
-    val ridesTodayFlow by viewModel.ridesToday.collectAsState()
-    val ridesToday = ridesTodayFlow.map { it }
-    val kmToday = convertMtoKm(ridesToday.sumOf { ride -> ride.distance.toDouble()  }.toFloat())
+    val ridesToday by viewModel.ridesToday.collectAsState()
+    val kmToday = convertMtoKm(ridesToday.sumOf { ride -> ride.distance.toDouble() }.toFloat())
 
-    val weeklyStatsFlow by viewModel.weeklyStats.collectAsState()
-    val weeklyStats = weeklyStatsFlow.map { it }
+    val weeklyStats by viewModel.weeklyStats.collectAsState()
+    val activeChallenge by viewModel.activeChallenge.collectAsState()
+    val athleteEntity by viewModel.athleteEntity.collectAsState()
 
     Scaffold(
         topBar = {
@@ -87,34 +85,10 @@ fun HomeScreen() {
                         .padding(16.dp)
                 ) {
                     Text(
-                        "Good day for a ride, User!",
+                        "Good day for a ride, ${athleteEntity?.firstname}!",
                         style = MaterialTheme.typography.headlineSmall
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Filled.LocationOn,
-                            contentDescription = "Location",
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            "Tornio, Lapland, Finland",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Weather: Sunny", style = MaterialTheme.typography.bodyMedium)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Temperature: +15°C", style = MaterialTheme.typography.bodyMedium)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Wind: 2 m/s", style = MaterialTheme.typography.bodyMedium)
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        "Today's goal is to cycle 15 km!",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
                     Text(
                         "You have already cycled $kmToday today.",
                         style = MaterialTheme.typography.bodyMedium,
@@ -125,45 +99,54 @@ fun HomeScreen() {
 
             // Latest Activities Snippet
 
-                Text(
-                    "Latest Rides",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp)
-                )
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                ) {
-                    if (latestRides.isEmpty()) {
-                        Column(modifier = Modifier.padding(16.dp).fillMaxWidth().align(Alignment.CenterHorizontally)) {
-                            Text("Start cycling for the rides to show up here.")
-                        }
-                    } else {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            latestRides.forEachIndexed { index, ride ->
-                                LastRideItem(
-                                    date = "${formatDate(ride.startDate)} - ${ride.activityEndTime}", // Adjust formatting as needed
-                                    name = ride.name,
-                                    distance = convertMtoKm(ride.distance),
-                                    duration = formatDuration(ride.elapsedTime)
-                                )
-                                if (index < latestRides.size - 1) {
-                                    Spacer(modifier = Modifier.height(14.dp))
-                                    HorizontalDivider()
-                                    Spacer(modifier = Modifier.height(14.dp))
-                                }
+            Text(
+                "Latest Rides",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
+            )
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                if (latestRides.isEmpty()) {
+                    Column(modifier = Modifier.padding(16.dp).fillMaxWidth().align(Alignment.CenterHorizontally)) {
+                        Text("Start cycling for the rides to show up here.")
+                    }
+                } else {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        latestRides.forEachIndexed { index, ride ->
+                            LastRideItem(
+                                date = "${formatDate(ride.startDate)} - ${ride.activityEndTime}", // Adjust formatting as needed
+                                name = ride.name,
+                                distance = convertMtoKm(ride.distance),
+                                duration = formatDuration(ride.elapsedTime),
+                                onClick = { navController.navigate("activityDetails/${ride.id}") }
+                            )
+                            if (index < latestRides.size - 1) {
+                                Spacer(modifier = Modifier.height(14.dp))
+                                HorizontalDivider()
+                                Spacer(modifier = Modifier.height(14.dp))
                             }
                         }
                     }
                 }
+            }
 
 
             // Statistics Summary
+            Text(
+                "Your Weekly Stats",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
+            )
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -171,58 +154,56 @@ fun HomeScreen() {
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        "Weekly Stats",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
                     Row(
                         horizontalArrangement = Arrangement.SpaceAround,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         if (weeklyStats.isEmpty()) {
                             Text("No weekly stats found.")
-                            return@Row
                         } else {
                             StatisticItem(
                                 label = "Distance",
-                                value = convertMtoKm(weeklyStats[0].value as Float)
+                                value = convertMtoKm(weeklyStats["totalDistance"] as? Float ?: 0f)
                             )
                             StatisticItem(
                                 label = "Time",
-                                value = formatDuration(weeklyStats[1].value as Int)
+                                value = formatDuration(weeklyStats["totalTime"] as? Int ?: 0)
                             )
                             StatisticItem(
                                 label = "Avg Speed",
-                                value = "${convertMsToKmh(weeklyStats[2].value as Float)} km/h"
+                                value = "${convertMsToKmh(weeklyStats["averageSpeed"] as? Float ?: 0f)} km/h"
                             )
                         }
                     }
                 }
             }
 
-            // Inspiring Nudges
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        "Weekly Challenge",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                    Text(
-                        "Cycle 50 km this week and feel awesome!",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(onClick = { /* TODO: Show challenges */ }) {
-                        Text("View Challenges")
-                    }
-                }
+            Text(
+                "Latest Ongoing Challenge",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
+            )
+            // Weekly Challenge
+            activeChallenge?.let {challenge ->
+                val progress =
+                    if (challenge.goal > 0) (challenge.currentProgress / challenge.goal).coerceIn(
+                        0f,
+                        1f
+                    ) else 0f
+                val progressColor =
+                    if (challenge.isCompleted) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary
+                ProgressCard(
+                    title = challenge.name,
+                    progress = progress,
+                    progressColor = progressColor,
+                    currentProgress = challenge.currentProgress,
+                    goal = challenge.goal,
+                    unit = challenge.unit.unit,
+                    modifier = Modifier.clickable { navController.navigate("challengeDetails/${challenge.id}") }
+                )
             }
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -230,8 +211,8 @@ fun HomeScreen() {
 }
 
 @Composable
-fun LastRideItem(date: String, name: String, distance: String, duration: String) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+fun LastRideItem(date: String, name: String, distance: String, duration: String, onClick: () -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
             Text(name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
             Text(date, style = MaterialTheme.typography.bodySmall)
