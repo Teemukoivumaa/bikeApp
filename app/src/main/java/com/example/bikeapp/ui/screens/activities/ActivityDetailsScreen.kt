@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -37,8 +36,9 @@ import com.example.bikeapp.utils.formatDate
 import com.example.bikeapp.utils.formatDuration
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.AdvancedMarker
+import com.google.maps.android.compose.ComposeMapColorScheme
 import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 
@@ -224,15 +224,16 @@ fun ActivityDetailsScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(400.dp),
-                        cameraPositionState = cameraPositionState
+                        cameraPositionState = cameraPositionState,
+                        mapColorScheme = ComposeMapColorScheme.DARK,
                     ) {
-                        Marker(
+                        AdvancedMarker(
                             state = startMarkerState,
                             title = activity.name,
                             snippet = "Start Location",
                         )
 
-                        Marker(
+                        AdvancedMarker(
                             state = endMarkerState,
                             title = activity.name,
                             snippet = "End Location",
