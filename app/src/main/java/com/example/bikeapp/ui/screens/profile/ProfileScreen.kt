@@ -1,7 +1,5 @@
 package com.example.bikeapp.ui.screens.profile
 
-import androidx.compose.animation.core.EaseInOutCubic
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,6 +16,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -28,13 +28,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.bikeapp.R
 import ir.ehsannarmani.compose_charts.LineChart
 import ir.ehsannarmani.compose_charts.models.AnimationMode
-import ir.ehsannarmani.compose_charts.models.DrawStyle
+import ir.ehsannarmani.compose_charts.models.DotProperties
+import ir.ehsannarmani.compose_charts.models.HorizontalIndicatorProperties
+import ir.ehsannarmani.compose_charts.models.LabelHelperProperties
+import ir.ehsannarmani.compose_charts.models.LabelProperties
 import ir.ehsannarmani.compose_charts.models.Line
+import java.text.DecimalFormat
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,14 +78,9 @@ fun ProfileScreen(
                         Text(text = name, style = MaterialTheme.typography.headlineSmall)
                     }
                     Spacer(modifier = Modifier.height(8.dp))
-                    uiState.totalDistance?.let { distance ->
-                        Text(
-                            text = "Total Distance: $distance km",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
                 }
             }
+
             item {
                 Card(
                     modifier = Modifier
@@ -89,60 +90,137 @@ fun ProfileScreen(
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceAround
+                        horizontalArrangement = Arrangement.SpaceAround,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // First Stat
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(text = "25", style = MaterialTheme.typography.bodyLarge)
+                            Text(
+                                text = "${uiState.totalWorkouts ?: 0}",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
                             Text(
                                 text = "Total Workouts",
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
                         Spacer(modifier = Modifier.weight(1f))
-                        // Second Stat
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(text = "150 km", style = MaterialTheme.typography.bodyLarge)
+                            val df = remember { DecimalFormat("#.##") }
+                            Text(
+                                text = "${df.format(uiState.totalDistance ?: 0)} km",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
                             Text(text = "Distance", style = MaterialTheme.typography.bodySmall)
                         }
                         Spacer(modifier = Modifier.weight(1f))
-                        // Third Stat
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(text = "12", style = MaterialTheme.typography.bodyLarge)
-                            Text(text = "Bikes Owned", style = MaterialTheme.typography.bodySmall)
+                            val df = remember { DecimalFormat("#.##") }
+                            Text(
+                                text = "${df.format(uiState.totalElevationGain ?: 0)} m",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Text(
+                                text = "Elevation Gain",
+                                style = MaterialTheme.typography.bodySmall
+                            )
                         }
                     }
                 }
             }
+
             item {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = "Monthly Progress", style = MaterialTheme.typography.bodySmall)
-                    // This is a placeholder for your chart
+                    Text(text = "Monthly Progress", style = MaterialTheme.typography.titleMedium)
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                    LineChart(
-                        modifier = Modifier
-                            .height(300.dp)
-                            .fillMaxWidth()
-                            .padding(horizontal = 22.dp),
-                        data = remember {
-                            listOf(
+                    val chartData = when (uiState.selectedChart) {
+                        ChartView.DISTANCE -> uiState.monthlyDistance
+                        ChartView.WORKOUTS -> uiState.monthlyWorkouts
+                        ChartView.ELEVATION -> uiState.monthlyElevation
+                    }
+
+                    val chartLabel = when (uiState.selectedChart) {
+                        ChartView.DISTANCE -> "Distance (KM)"
+                        ChartView.WORKOUTS -> "Workouts"
+                        ChartView.ELEVATION -> "Elevation (M)"
+                    }
+
+                    SingleChoiceSegmentedButtonRow(
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        SegmentedButton(
+                            selected = uiState.selectedChart == ChartView.DISTANCE,
+                            onClick = { viewModel.onChartSelectionChanged(ChartView.DISTANCE) },
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Text("Distance")
+                        }
+                        Spacer(modifier = Modifier.weight(0.25f))
+                        SegmentedButton(
+                            selected = uiState.selectedChart == ChartView.WORKOUTS,
+                            onClick = { viewModel.onChartSelectionChanged(ChartView.WORKOUTS) },
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Text("Workouts")
+                        }
+                        Spacer(modifier = Modifier.weight(0.25f))
+                        SegmentedButton(
+                            selected = uiState.selectedChart == ChartView.ELEVATION,
+                            onClick = { viewModel.onChartSelectionChanged(ChartView.ELEVATION) },
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Text("Elevation")
+                        }
+                    }
+
+                    if (chartData.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(24.dp))
+                        LineChart(
+                            modifier = Modifier
+                                .height(300.dp)
+                                .fillMaxWidth(),
+                            data = listOf(
                                 Line(
-                                    label = "Windows",
-                                    values = listOf(28.0, 41.0, 5.0, 10.0, 35.0),
-                                    color = SolidColor(Color(0xFF23af92)),
-                                    firstGradientFillColor = Color(0xFF2BC0A1).copy(alpha = .5f),
-                                    secondGradientFillColor = Color.Transparent,
-                                    strokeAnimationSpec = tween(2000, easing = EaseInOutCubic),
-                                    gradientAnimationDelay = 1000,
-                                    drawStyle = DrawStyle.Stroke(width = 2.dp),
+                                    label = chartLabel,
+                                    values = chartData,
+                                    color = SolidColor(colorResource(id = R.color.vibrant_green)),
+                                    dotProperties = DotProperties(
+                                        enabled = true,
+                                        color = SolidColor(Color.White),
+                                        strokeWidth = 2.dp,
+                                        radius = 2.dp,
+                                        strokeColor = SolidColor(Color.DarkGray),
+                                    )
                                 )
+                            ),
+                            animationMode = AnimationMode.Together(delayBuilder = {
+                                it * 500L
+                            }),
+                            indicatorProperties = HorizontalIndicatorProperties(
+                                enabled = true,
+                                textStyle = MaterialTheme.typography.labelSmall.copy(
+                                    color = Color.White
+                                ),
+                            ),
+                            labelProperties = LabelProperties(
+                                enabled = true,
+                                textStyle = MaterialTheme.typography.labelSmall.copy(
+                                    color = Color.White
+                                ),
+                                labels = uiState.monthlyProgressLabels,
+                                rotation = LabelProperties.Rotation(
+                                    mode = LabelProperties.Rotation.Mode.Force,
+                                    degree = -90f
+                                )
+                            ),
+                            labelHelperProperties = LabelHelperProperties(
+                                enabled = true,
+                                textStyle = MaterialTheme.typography.labelSmall.copy(
+                                    color = Color.White
+                                ),
                             )
-                        },
-                        animationMode = AnimationMode.Together(delayBuilder = {
-                            it * 500L
-                        }),
-                    )
-
+                        )
+                    }
                 }
             }
         }
