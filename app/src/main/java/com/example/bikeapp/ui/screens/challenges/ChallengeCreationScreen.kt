@@ -157,9 +157,7 @@ fun ChallengeCreationScreen(navController: NavController) {
 
                 ExposedDropdownMenuBox(
                     expanded = expandedChallengeUnit,
-                    onExpandedChange = {
-                        !expandedChallengeUnit
-                    },
+                    onExpandedChange = { expandedChallengeUnit = !expandedChallengeUnit },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     OutlinedTextField(
@@ -279,7 +277,7 @@ fun ChallengeCreationScreen(navController: NavController) {
                     ExposedDropdownMenuBox(
                         expanded = expandedRecurringChallenge,
                         onExpandedChange = {
-                            !expandedRecurringChallenge
+                            expandedRecurringChallenge = !expandedRecurringChallenge
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
