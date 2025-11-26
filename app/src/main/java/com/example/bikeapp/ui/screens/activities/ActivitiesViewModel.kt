@@ -9,18 +9,21 @@ import com.example.bikeapp.data.model.ActivityLocationEntity
 import com.example.bikeapp.data.model.StravaActivityEntity
 import com.example.bikeapp.data.model.mockActivity
 import com.example.bikeapp.data.remote.StravaRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class ActivitiesViewModel(
+@HiltViewModel
+class ActivitiesViewModel @Inject constructor(
     private val stravaRepository: StravaRepository,
     private val secureStorageManager: SecureStorageManager,
     private val database: AppDatabase
 ) : ViewModel() {
-    private val _activity = MutableStateFlow<StravaActivityEntity>(mockActivity())
+    private val _activity = MutableStateFlow(mockActivity())
     val activity = _activity as StateFlow<StravaActivityEntity?>
 
     private val _locations = MutableStateFlow<List<ActivityLocationEntity>>(emptyList())

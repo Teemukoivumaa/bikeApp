@@ -68,7 +68,10 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ActivitiesScreen(viewModel: ActivityViewModel, navController: NavHostController) {
+fun ActivitiesScreen(
+    viewModel: ActivityViewModel = hiltViewModel(),
+    navController: NavHostController
+) {
     val context = LocalContext.current
     val sharedAuthViewModel: SharedAuthViewModel = hiltViewModel()
     val coroutineScope = rememberCoroutineScope()

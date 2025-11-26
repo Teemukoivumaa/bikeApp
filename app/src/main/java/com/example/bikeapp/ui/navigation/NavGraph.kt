@@ -15,9 +15,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.bikeapp.ui.screens.activities.ActivitiesScreen
-import com.example.bikeapp.ui.screens.activities.ActivitiesViewModel
 import com.example.bikeapp.ui.screens.activities.ActivityDetailsScreen
-import com.example.bikeapp.ui.screens.activities.ActivityViewModel
 import com.example.bikeapp.ui.screens.challenges.ChallengeCreationScreen
 import com.example.bikeapp.ui.screens.challenges.ChallengeDetailsScreen
 import com.example.bikeapp.ui.screens.challenges.ChallengesScreen
@@ -25,15 +23,10 @@ import com.example.bikeapp.ui.screens.home.HomeScreen
 import com.example.bikeapp.ui.screens.profile.CreateAccountScreen
 import com.example.bikeapp.ui.screens.profile.ProfileScreen
 import com.example.bikeapp.ui.screens.strava.StravaLoginScreen
-import com.example.bikeapp.ui.screens.strava.StravaLoginViewModel
-
 
 @Composable
 fun AppNavGraph(
     navController: NavHostController = rememberNavController(),
-    activityViewModel: ActivityViewModel,
-    activitiesViewModel: ActivitiesViewModel,
-    stravaLoginViewModel: StravaLoginViewModel,
 ) {
     val layoutDirection = LocalLayoutDirection.current
 
@@ -58,7 +51,6 @@ fun AppNavGraph(
                 }
                 composable("activities_screen") {
                     ActivitiesScreen(
-                        activityViewModel,
                         navController = navController
                     )
                 }
@@ -66,7 +58,7 @@ fun AppNavGraph(
                     val activityId = backStackEntry.arguments?.getString("activityId")
 
                     if (activityId != null) {
-                        ActivityDetailsScreen(activitiesViewModel, activityId.toLong())
+                        ActivityDetailsScreen(activityId.toLong(), navController)
                     } else {
                         HomeScreen(navController = navController)
                     }
@@ -85,7 +77,7 @@ fun AppNavGraph(
                     }
                 }
                 composable("strava_login") {
-                    StravaLoginScreen(stravaLoginViewModel)
+                    StravaLoginScreen()
                 }
                 composable("profile_screen") {
                     ProfileScreen(navController)

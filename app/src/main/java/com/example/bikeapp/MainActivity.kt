@@ -57,11 +57,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppNavGraph(
-                        activityViewModel = activityViewModel,
-                        activitiesViewModel = activitiesViewModel,
-                        stravaLoginViewModel = stravaLoginViewModel,
-                    )
+                    AppNavGraph()
                 }
             }
         }

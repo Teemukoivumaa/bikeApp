@@ -28,7 +28,6 @@ data class ChallengeFormState(
     val recurring: Boolean = false,
     val recurringInterval: String? = null,
     val nameError: String? = null,
-    val descriptionError: String? = null,
     val goalError: String? = null,
     val startDateError: String? = null,
     val endDateError: String? = null,
@@ -63,7 +62,6 @@ class ChallengeCreationViewModel @Inject constructor(
         _uiState.update { currentState ->
             currentState.copy(
                 nameError = if (isNameValid) null else "Name cannot be empty",
-                descriptionError = if (isDescriptionValid == true) null else "Description cannot be empty",
                 goalError = if (isGoalValid) null else "Goal must be greater than 0",
                 startDateError = if (isStartDateValid) null else "Start date must be before end date",
                 endDateError = if (isEndDateValid == true) null else "End date must be after start date",
