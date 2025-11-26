@@ -16,6 +16,7 @@ import com.example.bikeapp.data.local.migrations.MIGRATION_1_2
 import com.example.bikeapp.data.local.migrations.MIGRATION_2_3
 import com.example.bikeapp.data.local.migrations.MIGRATION_3_4
 import com.example.bikeapp.data.local.migrations.MIGRATION_4_5
+import com.example.bikeapp.data.local.migrations.MIGRATION_5_6
 import com.example.bikeapp.data.model.ActivityLocationEntity
 import com.example.bikeapp.data.model.AthleteEntity
 import com.example.bikeapp.data.model.ChallengeEntity
@@ -30,7 +31,7 @@ const val DATABASE_NAME = "bike-app-database"
         ActivityLocationEntity::class,
         ChallengeEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 
@@ -52,7 +53,13 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     DATABASE_NAME
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                    .addMigrations(
+                        MIGRATION_1_2,
+                        MIGRATION_2_3,
+                        MIGRATION_3_4,
+                        MIGRATION_4_5,
+                        MIGRATION_5_6
+                    )
                     .build()
                 INSTANCE = instance
                 instance

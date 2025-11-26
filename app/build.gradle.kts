@@ -122,13 +122,14 @@ dependencies {
     ksp(libs.androidx.room.compiler)
 
     implementation("com.google.maps.android:maps-compose:6.5.3")
+    implementation("com.google.maps.android:maps-utils-ktx:3.4.0")
     implementation("androidx.compose.ui:ui-text-google-fonts:1.7.8")
     implementation("com.google.code.gson:gson:2.10.1")
 
     implementation ("com.google.dagger:hilt-android:2.56.1")
     kapt("com.google.dagger:hilt-compiler:2.56.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
-    implementation ("io.github.ehsannarmani:compose-charts:0.1.7")
+    implementation ("io.github.ehsannarmani:compose-charts:0.1.9")
 
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")

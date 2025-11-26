@@ -161,10 +161,9 @@ class SharedAuthViewModel @Inject constructor(
             val activityResponses = mutableListOf<Deferred<List<ActivityResponse>?>>()
             // Launch multiple coroutines to fetch activities concurrently
             for (i in 1..20) {
-                val page = i
                 activityResponses.add(async(Dispatchers.IO) {
                     stravaRepository.getAthleteActivities(
-                        authorization = authToken, perPage = 30, page = page
+                        authorization = authToken, perPage = 30, page = i
                     )
                 })
             }
@@ -185,14 +184,14 @@ class SharedAuthViewModel @Inject constructor(
                     val externalId = activity.id.toString()
 
                     // Check database on the main thread (less context switching)
-                    if (database.stravaActivityDao().getActivityByExternalId(externalId) != null) {
-                        continue
+                    val existingActivity = withContext(Dispatchers.IO) {
+                        database.stravaActivityDao().getActivityByExternalId(externalId)
                     }
 
                     val startDate = convertStringToDateUsingTime(activity.startDate, activity.timezone)
                     val activityEndTime = calculateEndTime(startDate, activity.movingTime)
                     val newActivity = StravaActivityEntity(
-                        id = 0,
+                        id = existingActivity?.id ?: 0, // Use existing ID if available
                         name = activity.name,
                         startDate = startDate,
                         distance = activity.distance,
@@ -212,6 +211,7 @@ class SharedAuthViewModel @Inject constructor(
                         sportType = activity.sportType,
                         elevHigh = activity.elevHigh,
                         elevLow = activity.elevLow,
+                        summaryPolyline = activity.map.summaryPolyline,
                         deviceName = activity.deviceName,
                     )
                     newActivitiesToInsert.add(newActivity)
