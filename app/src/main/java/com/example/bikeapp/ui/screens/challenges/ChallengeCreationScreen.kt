@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
@@ -79,12 +80,29 @@ fun ChallengeCreationScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Challenges") },
-                navigationIcon = {
-                    IconButton(onClick = { /* TODO: Navigate back or open drawer */ }) {
+                title = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    ) {
                         Icon(
                             painterResource(R.drawable.challenges),
                             contentDescription = "Challenges Icon"
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Create a new challenge",
+                            style = MaterialTheme.typography.headlineSmall
+                        )
+                    }
+                },
+                navigationIcon = {
+                    IconButton(
+                        onClick = { navController.popBackStack() }
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.arrow_back),
+                            contentDescription = "Back"
                         )
                     }
                 }
@@ -99,14 +117,6 @@ fun ChallengeCreationScreen(navController: NavController) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
-                Text(
-                    text = "Create new challenge",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
                 OutlinedTextField(
                     value = uiState.name,
                     onValueChange = { viewModel.onNameChange(it) },
@@ -126,15 +136,8 @@ fun ChallengeCreationScreen(navController: NavController) {
                     value = uiState.description.toString(),
                     onValueChange = { viewModel.onDescriptionChange(it) },
                     label = { Text("Description (Optional)") },
-                    isError = uiState.descriptionError != null,
                     modifier = Modifier.fillMaxWidth()
                 )
-                if (uiState.descriptionError != null) {
-                    Text(
-                        text = uiState.descriptionError!!,
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
-                }
                 Spacer(modifier = Modifier.height(8.dp))
 
                 OutlinedTextField(

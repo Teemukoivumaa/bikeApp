@@ -29,10 +29,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.bikeapp.R
 import com.example.bikeapp.data.model.ChallengeEntity
 import com.example.bikeapp.ui.components.ProgressCard
 import com.example.bikeapp.utils.formatDate
@@ -55,8 +57,13 @@ fun ChallengeDetailsScreen(
             TopAppBar(
                 title = { Text(text = challenge?.name ?: "Challenge Details") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    IconButton(
+                        onClick = { navController.popBackStack() }
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.arrow_back),
+                            contentDescription = "Back"
+                        )
                     }
                 },
                 actions = {

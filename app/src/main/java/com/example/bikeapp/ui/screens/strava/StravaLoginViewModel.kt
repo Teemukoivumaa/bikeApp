@@ -7,7 +7,6 @@ import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bikeapp.BuildConfig
-import com.example.bikeapp.data.local.AppDatabase
 import com.example.bikeapp.data.local.AuthenticationStateKeys.AUTHENTICATED
 import com.example.bikeapp.data.local.AuthenticationStateKeys.STRAVA_AUTH_FINISHED
 import com.example.bikeapp.data.local.AuthenticationStateKeys.STRAVA_AUTH_STARTED
@@ -15,11 +14,13 @@ import com.example.bikeapp.data.local.AuthenticationStateKeys.UNAUTHENTICATED
 import com.example.bikeapp.data.local.SecureStorageManager
 import com.example.bikeapp.data.remote.StravaRepository
 import com.example.bikeapp.data.remote.TokenRequest
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-
-class StravaLoginViewModel(
+@HiltViewModel
+class StravaLoginViewModel @Inject constructor(
     private val secureStorageManager: SecureStorageManager,
     private val stravaRepository: StravaRepository
 ) : ViewModel() {

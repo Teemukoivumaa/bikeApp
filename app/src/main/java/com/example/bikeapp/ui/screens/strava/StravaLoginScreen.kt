@@ -29,7 +29,7 @@ import com.example.bikeapp.R
  */
 @Composable
 fun StravaLoginScreen(
-    stravaLoginViewModel: StravaLoginViewModel,
+    stravaLoginViewModel: StravaLoginViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
     val sharedAuthViewModel: SharedAuthViewModel = hiltViewModel()
