@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface StravaActivityDao {
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(activities: List<StravaActivityEntity>): List<Long>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

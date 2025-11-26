@@ -12,7 +12,7 @@ interface LocationDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(location: ActivityLocationEntity): Long
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(locations: List<ActivityLocationEntity>)
 
     @Query("SELECT * FROM activity_locations WHERE id = :id")

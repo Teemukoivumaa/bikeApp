@@ -29,6 +29,7 @@ data class StravaActivityEntity(
     @ColumnInfo(name = "average_heartrate") val averageHeartrate: Float?,
     @ColumnInfo(name = "max_heartrate") val maxHeartrate: Float?,
     @ColumnInfo(name = "device_name") val deviceName: String?,
+    @ColumnInfo(name = "summary_polyline") val summaryPolyline: String?,
     @ColumnInfo(name = "external_id") val externalId: String?,
     @ColumnInfo(name = "full_info_fetched") val fullInfoFetched: Boolean = false
 )
@@ -55,6 +56,7 @@ fun mockActivity(): StravaActivityEntity {
         sportType = "sport",
         elevHigh = 100F,
         elevLow = 10F,
+        summaryPolyline = null,
         deviceName = "Mock",
     )
 }

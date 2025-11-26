@@ -5,11 +5,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bikeapp.data.local.AppDatabase
 import com.example.bikeapp.data.model.StravaActivityEntity
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class ActivityViewModel(private val database: AppDatabase) : ViewModel() {
+@HiltViewModel
+class ActivityViewModel @Inject constructor(private val database: AppDatabase) : ViewModel() {
 
     private val _activities = MutableStateFlow<List<StravaActivityEntity>>(emptyList())
     private val _totalLength = MutableStateFlow(0.0f)
