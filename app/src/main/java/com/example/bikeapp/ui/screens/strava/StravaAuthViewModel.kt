@@ -222,7 +222,7 @@ class SharedAuthViewModel @Inject constructor(
                         newLocationsToInsert.add(
                             ActivityLocationEntity(
                                 id = 0,
-                                activityId = 0, // Placeholder, will be updated after activity insertion
+                                activityId = newActivity.id,
                                 latitude = startLocation[0],
                                 longitude = startLocation[1],
                                 coordinatesAsString = "${startLocation[0]},${startLocation[1]}",
@@ -235,7 +235,7 @@ class SharedAuthViewModel @Inject constructor(
                         newLocationsToInsert.add(
                             ActivityLocationEntity(
                                 id = 0,
-                                activityId = 0, // Placeholder
+                                activityId = newActivity.id,
                                 latitude = endLocation[0],
                                 longitude = endLocation[1],
                                 coordinatesAsString = "${endLocation[0]},${endLocation[1]}",
@@ -247,17 +247,10 @@ class SharedAuthViewModel @Inject constructor(
 
                 if (newActivitiesToInsert.isNotEmpty()) {
                     withContext(Dispatchers.IO) {
-                        // Bulk insert activities and get their IDs
-                        val insertedActivityIds =
-                            database.stravaActivityDao().insertAll(newActivitiesToInsert)
-
-                        // Update location activity IDs
-                        val updatedLocations = newLocationsToInsert.mapIndexed { index, location ->
-                            location.copy(activityId = insertedActivityIds[index / 2]) // Assuming Start and End for each activity
-                        }
-
+                        // Bulk insert activities
+                         database.stravaActivityDao().insertAll(newActivitiesToInsert)
                         // Bulk insert locations
-                        database.locationDao().insertAll(updatedLocations)
+                        database.locationDao().insertAll(newLocationsToInsert)
                     }
                     Log.d(
                         "StravaLoginScreen",

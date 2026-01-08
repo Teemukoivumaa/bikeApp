@@ -7,6 +7,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,17 +20,25 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuItemColors
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -79,11 +88,37 @@ fun ActivitiesScreen(
     val activities by viewModel.activities.collectAsState()
     val totalLength by viewModel.totalLength.collectAsState()
 
+    val filterOptions = listOf("All", "> 10km", "> 20km")
+    var selectedFilterIndex by rememberSaveable { mutableStateOf(0) }
+    var sortOrder by rememberSaveable { mutableStateOf(SortOrder.DATE_DESC) }
+
+    val filteredActivities by remember {
+        derivedStateOf {
+            val filtered = when (filterOptions.getOrNull(selectedFilterIndex)) {
+                "> 10km" -> activities.filter { it.distance > 10000f }
+                "> 20km" -> activities.filter { it.distance > 20000f }
+                else -> activities
+            }
+            when (sortOrder) {
+                SortOrder.DATE_DESC -> filtered.sortedByDescending { it.startDate }
+                SortOrder.DATE_ASC -> filtered.sortedBy { it.startDate }
+                SortOrder.DISTANCE_DESC -> filtered.sortedByDescending { it.distance }
+                SortOrder.DISTANCE_ASC -> filtered.sortedBy { it.distance }
+            }
+        }
+    }
+
     val listState = rememberLazyListState()
     var showStatsCards by rememberSaveable { mutableStateOf(true) }
 
     val firstVisibleItemScrollOffset by remember {
         derivedStateOf { listState.firstVisibleItemScrollOffset }
+    }
+
+    val onNavigateToDetails = remember(navController) {
+        { activityId: Long ->
+            navController.navigate("activityDetails/$activityId")
+        }
     }
 
     LaunchedEffect(firstVisibleItemScrollOffset) {
@@ -114,6 +149,8 @@ fun ActivitiesScreen(
         ),
         label = "Statistic Card Height Animation"
     )
+
+    var showSortMenu by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -154,15 +191,129 @@ fun ActivitiesScreen(
                     }
                 }
                 Spacer(modifier = Modifier.size(16.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SingleChoiceSegmentedButtonRow(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        filterOptions.forEachIndexed { index, label ->
+                            SegmentedButton(
+                                shape = SegmentedButtonDefaults.itemShape(
+                                    index = index,
+                                    count = filterOptions.size,
+                                ),
+                                onClick = {
+                                    selectedFilterIndex = index
+                                    coroutineScope.launch {
+                                        listState.animateScrollToItem(0)
+                                    }
+                                },
+                                selected = index == selectedFilterIndex,
+                            ) {
+                                Text(label)
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Box {
+                        IconButton(onClick = { showSortMenu = true }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.sort),
+                                contentDescription = "Sort activities",
+                                tint = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = showSortMenu,
+                            onDismissRequest = { showSortMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Date (Newest first)") },
+                                leadingIcon = if (sortOrder == SortOrder.DATE_DESC) {
+                                    {
+                                        Icon(
+                                            Icons.Filled.Check,
+                                            contentDescription = "Selected",
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                } else null,
+                                onClick = {
+                                    sortOrder = SortOrder.DATE_DESC
+                                    showSortMenu = false
+                                    coroutineScope.launch { listState.animateScrollToItem(0) }
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Date (Oldest first)") },
+                                leadingIcon = if (sortOrder == SortOrder.DATE_ASC) {
+                                    {
+                                        Icon(
+                                            Icons.Filled.Check,
+                                            contentDescription = "Selected",
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                } else null,
+                                onClick = {
+                                    sortOrder = SortOrder.DATE_ASC
+                                    showSortMenu = false
+                                    coroutineScope.launch { listState.animateScrollToItem(0) }
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Distance (High to Low)") },
+                                leadingIcon = if (sortOrder == SortOrder.DISTANCE_DESC) {
+                                    {
+                                        Icon(
+                                            Icons.Filled.Check,
+                                            contentDescription = "Selected",
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                } else null,
+                                onClick = {
+                                    sortOrder = SortOrder.DISTANCE_DESC
+                                    showSortMenu = false
+                                    coroutineScope.launch { listState.animateScrollToItem(0) }
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Distance (Low to High)") },
+                                leadingIcon = if (sortOrder == SortOrder.DISTANCE_ASC) {
+                                    {
+                                        Icon(
+                                            Icons.Filled.Check,
+                                            contentDescription = "Selected",
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                } else null,
+                                onClick = {
+                                    sortOrder = SortOrder.DISTANCE_ASC
+                                    showSortMenu = false
+                                    coroutineScope.launch { listState.animateScrollToItem(0) }
+                                }
+                            )
+                        }
+                    }
+                }
+
                 LazyColumn(
                     state = listState,
                 ) {
-                    items(activities) { activity ->
+                    items(
+                        items = filteredActivities,
+                        key = { it.id }
+                    ) { activity ->
                         ActivityCard(
                             activity = activity,
-                            onOpenDetailsPage = { selectedActivity ->
-                                navController.navigate("activityDetails/${selectedActivity.id}")
-                            }
+                            onOpenDetailsPage = onNavigateToDetails
                         )
                     }
 
@@ -172,11 +323,15 @@ fun ActivitiesScreen(
     }
 }
 
+enum class SortOrder {
+    DATE_DESC, DATE_ASC, DISTANCE_DESC, DISTANCE_ASC
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ActivityCard(
     activity: StravaActivityEntity,
-    onOpenDetailsPage: (StravaActivityEntity) -> Unit
+    onOpenDetailsPage: (Long) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
@@ -247,7 +402,7 @@ data class ActivityDetailItem(
 @Composable
 fun ActivityDetailsBottomSheetContent(
     activity: StravaActivityEntity,
-    onOpenDetailsPage: (StravaActivityEntity) -> Unit,
+    onOpenDetailsPage: (Long) -> Unit,
     onShowBottomSheetChanged: (Boolean) -> Unit
 ) {
     Column(
@@ -272,7 +427,7 @@ fun ActivityDetailsBottomSheetContent(
 
             FloatingActionButton(
                 onClick = {
-                    onOpenDetailsPage(activity)
+                    onOpenDetailsPage(activity.id)
                     onShowBottomSheetChanged(false)
                 },
                 modifier = Modifier.weight(1f)
@@ -397,7 +552,7 @@ fun ActivityCardPreview() {
 fun ActivityDetailsBottomSheetContentPreview() {
     ActivityDetailsBottomSheetContent(
         activity = mockActivity(),
-        onOpenDetailsPage = {},
+        onOpenDetailsPage = { },
         onShowBottomSheetChanged = { }
     )
 }
