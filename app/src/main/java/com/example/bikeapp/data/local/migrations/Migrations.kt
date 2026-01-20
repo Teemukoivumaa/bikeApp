@@ -94,3 +94,28 @@ val MIGRATION_5_6 = object : Migration(5, 6) {
         db.execSQL("ALTER TABLE strava_activities ADD COLUMN summary_polyline TEXT")
     }
 }
+
+val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `activity_streams` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `activity_id` INTEGER NOT NULL,
+                `type` TEXT NOT NULL,
+                `data` TEXT NOT NULL,
+                `series_type` TEXT NOT NULL,
+                `original_size` INTEGER NOT NULL,
+                `resolution` TEXT NOT NULL,
+                 FOREIGN KEY(`activity_id`) REFERENCES `strava_activities`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+            """
+        )
+        db.execSQL(
+            """
+                CREATE INDEX IF NOT EXISTS `index_activity_streams_activity_id`
+                ON `activity_streams` (`activity_id` ASC)
+            """
+        )
+    }
+}

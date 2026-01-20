@@ -5,9 +5,11 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.example.bikeapp.data.local.converters.ChallengeDataConverter
 import com.example.bikeapp.data.local.converters.ChallengeTypeConverter
 import com.example.bikeapp.data.local.converters.CoordinateConverter
 import com.example.bikeapp.data.local.converters.DateConverter
+import com.example.bikeapp.data.local.databaseAccess.ActivityStreamDao
 import com.example.bikeapp.data.local.databaseAccess.AthleteDao
 import com.example.bikeapp.data.local.databaseAccess.ChallengesDao
 import com.example.bikeapp.data.local.databaseAccess.LocationDao
@@ -17,7 +19,9 @@ import com.example.bikeapp.data.local.migrations.MIGRATION_2_3
 import com.example.bikeapp.data.local.migrations.MIGRATION_3_4
 import com.example.bikeapp.data.local.migrations.MIGRATION_4_5
 import com.example.bikeapp.data.local.migrations.MIGRATION_5_6
+import com.example.bikeapp.data.local.migrations.MIGRATION_6_7
 import com.example.bikeapp.data.model.ActivityLocationEntity
+import com.example.bikeapp.data.model.ActivityStreamEntity
 import com.example.bikeapp.data.model.AthleteEntity
 import com.example.bikeapp.data.model.ChallengeEntity
 import com.example.bikeapp.data.model.StravaActivityEntity
@@ -29,18 +33,25 @@ const val DATABASE_NAME = "bike-app-database"
         StravaActivityEntity::class,
         AthleteEntity::class,
         ActivityLocationEntity::class,
-        ChallengeEntity::class
+        ChallengeEntity::class,
+        ActivityStreamEntity::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 
-@TypeConverters(DateConverter::class, CoordinateConverter::class, ChallengeTypeConverter::class)
+@TypeConverters(
+    DateConverter::class,
+    CoordinateConverter::class,
+    ChallengeTypeConverter::class,
+    ChallengeDataConverter::class
+)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun stravaActivityDao(): StravaActivityDao
     abstract fun athleteDao(): AthleteDao
     abstract fun locationDao(): LocationDao
     abstract fun challengeDao(): ChallengesDao
+    abstract fun activityStreamDao(): ActivityStreamDao
 
     companion object {
         @Volatile
@@ -58,7 +69,8 @@ abstract class AppDatabase : RoomDatabase() {
                         MIGRATION_2_3,
                         MIGRATION_3_4,
                         MIGRATION_4_5,
-                        MIGRATION_5_6
+                        MIGRATION_5_6,
+                        MIGRATION_6_7
                     )
                     .build()
                 INSTANCE = instance

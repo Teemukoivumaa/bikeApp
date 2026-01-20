@@ -9,9 +9,13 @@ import java.util.Locale
  * @return The speed in kilometers per hour.
  */
 fun convertMsToKmh(speedMs: Float): String {
-    val speedInKmh = speedMs * 3.6
+    val speedInKmh = calculateMsToKmh(speedMs)
     // Modify the format to include only two decimal places
     return String.format(Locale.getDefault(), "%.2f", speedInKmh)
+}
+
+fun calculateMsToKmh(speedMs: Float): Double {
+    return speedMs * 3.6
 }
 
 /**

@@ -51,7 +51,6 @@ class StravaRepository(private val stravaApi: StravaApi = RetrofitClient.instanc
             }
         }
 
-
     suspend fun getAthleteActivities(
         authorization: String, perPage: Int?, page: Int?
     ): List<ActivityResponse>? = withContext(Dispatchers.IO) {
@@ -100,23 +99,53 @@ class StravaRepository(private val stravaApi: StravaApi = RetrofitClient.instanc
         }
     }
 
-    suspend fun getActivity(authorization: String, id: Long): ActivityResponse? = withContext(Dispatchers.IO) {
-        val authorizationHeader = "Bearer $authorization"
+    suspend fun getActivity(authorization: String, id: Long): ActivityResponse? =
+        withContext(Dispatchers.IO) {
+            val authorizationHeader = "Bearer $authorization"
 
-        try {
-            val response = stravaApi.getActivity(authorizationHeader, id)
-            if (response.isSuccessful) {
-                response.body()
-            } else {
-                Log.e("StravaRepository", "Error getActivity: ${response.errorBody()?.string()}")
+            try {
+                val response = stravaApi.getActivity(authorizationHeader, id)
+                if (response.isSuccessful) {
+                    response.body()
+                } else {
+                    Log.e(
+                        "StravaRepository",
+                        "Error getActivity: ${response.errorBody()?.string()}"
+                    )
+                    null
+                }
+            } catch (e: HttpException) {
+                Log.e("StravaRepository", "HttpException: ${e.message()}")
+                null
+            } catch (e: IOException) {
+                Log.e("StravaRepository", "IOException: ${e.message}")
                 null
             }
-        } catch (e: HttpException) {
-            Log.e("StravaRepository", "HttpException: ${e.message()}")
-        } catch (e: IOException) {
-            Log.e("StravaRepository", "IOException: ${e.message}")
-            null
-        } as ActivityResponse?
+        }
 
-    }
+    suspend fun getActivityStreams(authorization: String, id: Long): ActivityStreamsResponse? =
+        withContext(Dispatchers.IO) {
+            val authorizationHeader = "Bearer $authorization"
+
+            val keys = StreamType.values().joinToString(",") { it.name.lowercase() }
+
+            try {
+                val response = stravaApi.getActivityStreams(authorizationHeader, id, keys)
+                if (response.isSuccessful) {
+                    response.body()?.let { ActivityStreamsResponse(it) }
+                } else {
+                    Log.e(
+                        "StravaRepository",
+                        "Error getActivityStreams: ${response.errorBody()?.string()}"
+                    )
+                    null
+                }
+            } catch (e: HttpException) {
+                Log.e("StravaRepository", "HttpException: ${e.message()}")
+                null
+            } catch (e: IOException) {
+                Log.e("StravaRepository", "IOException: ${e.message}")
+                null
+            }
+        }
 }
