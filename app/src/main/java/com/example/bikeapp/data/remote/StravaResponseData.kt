@@ -153,6 +153,43 @@ data class ActivityResponse(
     val sufferScore: Int? // Can be null
 )
 
+enum class StreamType {
+    @SerializedName("time")
+    TIME,
+    @SerializedName("altitude")
+    ALTITUDE,
+    @SerializedName("velocity_smooth")
+    VELOCITY_SMOOTH,
+    @SerializedName("heartrate")
+    HEARTRATE,
+    @SerializedName("cadence")
+    CADENCE,
+    @SerializedName("watts")
+    WATTS,
+    @SerializedName("temp")
+    TEMP,
+//    @SerializedName("moving") // This returns a boolean data value, removing for now
+//    MOVING,
+    @SerializedName("grade_smooth")
+    GRADE_SMOOTH,
+    @SerializedName("distance")
+    DISTANCE
+}
+
+data class ActivityStreamsResponse(
+    val streams: List<ActivityStream>
+)
+
+data class ActivityStream(
+    val type: StreamType,
+    val data: List<Float>,
+    @SerializedName("series_type")
+    val seriesType: String,
+    @SerializedName("original_size")
+    val originalSize: Int,
+    val resolution: String
+)
+
 data class ActivityAthlete(
     val id: Int,
     @SerializedName("resource_state")

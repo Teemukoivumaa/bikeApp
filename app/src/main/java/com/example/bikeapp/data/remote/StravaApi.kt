@@ -24,6 +24,13 @@ interface StravaApi {
         @Path("id") id: Long
     ): Response<ActivityResponse>
 
+    @GET("activities/{id}/streams")
+    suspend fun getActivityStreams(
+        @Header("Authorization") authorization: String,
+        @Path("id") id: Long,
+        @Query("keys") keys: String? = null
+    ): Response<List<ActivityStream>>
+
     // "athlete/activities?before=epoch&after=epoch&page=int&per_page=int"
     @GET("athlete/activities")
     suspend fun getAthleteActivities(

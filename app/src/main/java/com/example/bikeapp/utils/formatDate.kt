@@ -84,6 +84,22 @@ fun formatDuration(durationSeconds: Int): String {
 }
 
 /**
+ * Formats a duration in seconds to a user-friendly string (e.g., "1:30:25" or "30:25").
+ * @param durationSeconds The duration in seconds.
+ * @return A formatted string representing the duration.
+ */
+fun formatDurationHHMMSS(durationSeconds: Int): String {
+    val hours = durationSeconds / 3600
+    val minutes = (durationSeconds % 3600) / 60
+    val seconds = durationSeconds % 60
+    return if (hours > 0) {
+        String.format(Locale.getDefault(), "%d:%02d:%02d", hours, minutes, seconds)
+    } else {
+        String.format(Locale.getDefault(), "%d:%02d", minutes, seconds)
+    }
+}
+
+/**
  * Calculates the end time based on a start time and a duration in seconds.
  * @param startTime The start time as a Date object.
  * @param durationSeconds The duration in seconds.
@@ -94,7 +110,7 @@ fun calculateEndTime(startTime: Date, durationSeconds: Int): String {
     calendar.time = startTime
     calendar.add(java.util.Calendar.SECOND, durationSeconds)
 
-    var startDate = formatDate(startTime, DATE_FORMAT)
+    val startDate = formatDate(startTime, DATE_FORMAT)
     val endDate = formatDate(calendar.time, DATE_FORMAT)
 
     // If endTime has the same day as startTime, return only the HH:mm format
