@@ -28,7 +28,7 @@ class ActivitiesViewModel @Inject constructor(
     private val secureStorageManager: SecureStorageManager,
     private val database: AppDatabase
 ) : ViewModel() {
-    private val _activity = MutableStateFlow(mockActivity())
+    private val _activity = MutableStateFlow(null as StravaActivityEntity?)
     val activity = _activity as StateFlow<StravaActivityEntity?>
 
     private val _locations = MutableStateFlow<List<ActivityLocationEntity>>(emptyList())
